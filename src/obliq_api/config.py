@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # Application
     app_env: Literal["development", "staging", "production"] = "development"
     app_name: str = "obliq-api"
+    port: int = 8000
     debug: bool = False
     log_level: str = "INFO"
     secret_key: str = Field(..., min_length=32)

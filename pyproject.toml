@@ -40,6 +40,7 @@ dev = [
     "ruff>=0.8,<0.10",
     "mypy>=1.13,<1.15",
     "fakeredis[lua]>=2.26,<3",
+    "locust>=2.31,<3",
 ]
 
 [project.scripts]

@@ -1,0 +1,164 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  # ── 1. CI Testing Gate ───────────────────────────────────────────────────────
+  test:
+    name: Run Unit & Contract Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev]
+
+      - name: Execute Pytest Suite
+        run: |
+          pytest tests -v
+
+  # ── 2. Staging Deployment ───────────────────────────────────────────────────
+  deploy-staging:
+    name: Deploy to Staging (Hugging Face)
+    needs: test
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Database Migrations (Staging)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          alembic upgrade head
+        continue-on-error: false
+
+      - name: Push to Hugging Face Staging Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_STAGING: ${{ secrets.HF_SPACE_STAGING }}
+        run: |
+          git remote add hf-staging "https://user:$HF_TOKEN@huggingface.co/spaces/$HF_SPACE_STAGING"
+          git push hf-staging main:main --force
+
+  # ── 3. Post-Deploy Staging Smoke Verification ───────────────────────────────
+  smoke-staging:
+    name: Smoke Verification (Staging)
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Test Client
+        run: pip install httpx
+
+      - name: Run Smoke Test Script
+        env:
+          STAGING_URL: ${{ secrets.API_BASE_URL }}
+          INTERNAL_KEY: ${{ secrets.INTERNAL_KEY }}
+        run: |
+          # Allow container build time on Hugging Face (polling loop)
+          echo "Waiting for Staging Space container build..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_URL/health" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Staging is alive!"
+              break
+            fi
+            echo "Waiting for container (attempt $i/30)..."
+            sleep 10
+          done
+          python scripts/smoke_test.py --base-url "$STAGING_URL" --api-key "$INTERNAL_KEY"
+
+  # ── 4. Production Deployment (Gated by Reviewer Approval) ───────────────────
+  deploy-production:
+    name: Deploy to Production (Approval Required)
+    needs: smoke-staging
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Database Migrations (Production)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          alembic upgrade head
+        continue-on-error: false
+
+      - name: Push to Hugging Face Production Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_PRODUCTION: ${{ secrets.HF_SPACE_PRODUCTION }}
+        run: |
+          git remote add hf-prod "https://user:$HF_TOKEN@huggingface.co/spaces/$HF_SPACE_PRODUCTION"
+          git push hf-prod main:main --force
+
+  # ── 5. Post-Deploy Production Smoke Verification ────────────────────────────
+  smoke-production:
+    name: Smoke Verification (Production)
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Test Client
+        run: pip install httpx
+
+      - name: Run Smoke Test Script
+        env:
+          PROD_URL: ${{ secrets.API_BASE_URL }}
+          INTERNAL_KEY: ${{ secrets.INTERNAL_KEY }}
+        run: |
+          echo "Waiting for Production Space container build..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL/health" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Production is alive!"
+              break
+            fi
+            echo "Waiting for container (attempt $i/30)..."
+            sleep 10
+          done
+          python scripts/smoke_test.py --base-url "$PROD_URL" --api-key "$INTERNAL_KEY"

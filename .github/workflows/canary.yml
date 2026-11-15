@@ -1,0 +1,46 @@
+name: Accuracy & Latency Canary
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  canary-check:
+    name: Run OCR Canary SLA Check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [staging, production]
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Client Dependencies
+        run: pip install httpx
+
+      - name: Run Canary Check
+        env:
+          BASE_URL: ${{ secrets.API_BASE_URL }}
+          INTERNAL_KEY: ${{ secrets.INTERNAL_KEY }}
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+        run: |
+          python scripts/canary.py \
+            --base-url "$BASE_URL" \
+            --api-key "$INTERNAL_KEY" \
+            --fixture tests/fixtures/golden_fixture.pdf \
+            --truth tests/fixtures/golden_fixture_truth.txt \
+            --max-latency 4.0 \
+            --max-cer 0.03
