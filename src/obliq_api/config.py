@@ -28,10 +28,10 @@ class Settings(BaseSettings):
     job_result_ttl_seconds: int = 3600
     processing_timeout_seconds: int = 1800
 
-    # Database
+    # Database (sized for serverless replica scaling against Neon limits)
     database_url: PostgresDsn
-    database_pool_size: int = 10
-    database_max_overflow: int = 5
+    database_pool_size: int = 3
+    database_max_overflow: int = 2
 
     # Redis
     redis_url: RedisDsn
