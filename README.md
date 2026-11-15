@@ -1,41 +1,105 @@
 # obliq-api
 
-A high-performance FastAPI microservice wrapping the [obliq-ocr](https://pypi.org/project/obliq-ocr/) engine, built to process mixed-format tax documents, invoices, and challans uniformly across distributed enterprise services.
+HTTP OCR service wrapping `obliq-ocr` (PyMuPDF + RapidOCR/ONNX), built for FastAPI Cloud.
 
-## Overview
+## Stack
 
-`obliq-api` exposes the page-aware extraction power of `obliq-ocr` as an asynchronous HTTP REST interface. It automatically handles text-layer vs. scanned page routing, executes OCR pipelines via ONNX Runtime, and streams structured JSON payloads back to consumer microservices without blocking the main application thread.
+| Layer              | Service                          |
+|--------------------|----------------------------------|
+| Runtime            | Python 3.12 + FastAPI            |
+| Database           | **Neon** (serverless Postgres)   |
+| Job / rate store   | **Upstash** (managed Redis)      |
+| Auth               | JWT (dashboard) + hashed API keys|
+| Credits            | Organisation-scoped ledger       |
 
-## Key Features
+## Quick start
 
-- **Asynchronous Endpoints**: Non-blocking request handling optimized for high-concurrency document ingestion.
-- **Universal Payload Contract**: Standardized request/response wrappers matching the `obliq-ocr` schema.
-- **Multi-Environment Runtime**: Containerized out-of-the-box with support for CPU and GPU execution contexts.
-- **Health & Readiness Probes**: Built-in endpoints for Kubernetes liveness, readiness, and latency tracking.
+### 1. Create the managed services
 
-## API Endpoints
+**Neon (Postgres)**  
+1. Go to https://console.neon.tech and create a project.  
+2. Copy the **pooled** connection string.  
+3. Change the driver prefix to `postgresql+asyncpg://` and keep `?sslmode=require`.
 
-### 1. Health Check
-* **Endpoint**: `GET /health`
-* **Description**: Returns the runtime status and loaded device context (CPU/CUDA).
+**Upstash (Redis)**  
+1. Go to https://console.upstash.com and create a Redis database.  
+2. Copy the **Redis URL** (it starts with `rediss://` — TLS is required).  
+3. Paste it as `REDIS_URL`.
 
-### 2. Parse Document
-* **Endpoint**: `POST /api/v1/parse`
-* **Content-Type**: `multipart/form-data`
-* **Parameters**: 
-  * `file`: PDF or supported image file (`.pdf`, `.png`, `.jpg`)
-  * `force_device` (optional): Override execution backend (`cpu` or `cuda`)
-* **Response**: Full structured JSON output containing page-level breakdown, confidence scores, extraction methods, and raw text.
+### 2. Configure
 
-## Quickstart (Local Development)
+```bash
+cp .env.example .env
+```
 
-### Prerequisites
-- Python 3.10, 3.11, or 3.12
-- Docker and Docker Compose (optional for containerized runs)
+Edit `.env`:
 
-### Installation
+```env
+DATABASE_URL=postgresql+asyncpg://neondb_owner:npg_xxx@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
+REDIS_URL=rediss://default:ASxx...@romantic-sheep-12345.upstash.io:6379
+SECRET_KEY=a-long-random-string-at-least-32-characters
+```
 
-1. Clone the repository and navigate into the directory:
-   ```bash
-   git clone https://github.com/OBLIQ-in/obliq-api.git
-   cd obliq-api
+### 3. Install & migrate
+
+```bash
+pip install -e ".[dev]"
+alembic upgrade head
+```
+
+### 4. Run
+
+```bash
+fastapi dev src/obliq_api/main.py
+```
+
+## Core endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/health` | — | Liveness |
+| GET | `/ready` | — | Readiness (Neon + Upstash + OCR) |
+| POST | `/v1/auth/register` | — | Create org + owner |
+| POST | `/v1/auth/login` | — | JWT tokens |
+| POST | `/v1/jobs` | API key | Submit OCR job |
+| GET | `/v1/jobs/{id}` | API key | Job status |
+| GET | `/v1/jobs/{id}/result` | API key | Job result |
+| POST | `/v1/keys` | JWT | Create API key |
+| GET | `/v1/keys` | JWT | List keys |
+| POST | `/v1/keys/{id}/revoke` | JWT | Revoke key |
+| GET | `/v1/orgs/me` | JWT | Org + credit balance |
+| GET | `/v1/orgs/me/ledger` | JWT | Credit ledger |
+| GET | `/v1/orgs/me/usage` | JWT | Usage history |
+
+## Design highlights
+
+- **Neon** – durable data (orgs, users, API keys, credit ledger, usage records)
+- **Upstash Redis** – ephemeral job state + results with automatic TTL (zero in-memory state)
+- **Atomic credits** – reserve → settle / refund inside DB transactions
+- **Ephemeral uploads** – temp files always deleted in `finally`
+- **Internal keys** – exempt from credit deduction (`obliq_internal_`)
+- **Typed errors** – single `ErrorResponse` shape with `request_id`
+
+## Why Neon + Upstash?
+
+| Concern | Neon | Upstash |
+|---------|------|---------|
+| Purpose | Durable, transactional data | High-churn job state & rate limits |
+| Scale-to-zero friendly | Yes (serverless) | Yes (serverless) |
+| TTL / auto-expiry | Not needed | Built-in |
+| Large result payloads | Avoid | Ideal (short-lived) |
+| Strong consistency | Required for credits | Eventual is fine for jobs |
+
+## Checkpoints implemented
+
+1. Repo structure, config, models, migrations, health/ready, typed schemas  
+2. Auth (API keys + JWT), job flow, credit reservation/settlement, temp-file cleanup  
+3. Structured error handling, request-id middleware, dashboard endpoints  
+
+## Next steps
+
+- Wire the real `obliq-ocr` package  
+- Add rate-limit middleware (Upstash token bucket)  
+- OpenTelemetry exporters  
+- Daily usage rollups for graphs  
+- Full dashboard frontend  
