@@ -1,0 +1,126 @@
+# Repository Labels Definition for obliq-api
+# Synced via .github/workflows/label-sync.yml using EndBug/label-sync
+
+# --- Type / Category Labels ---
+- name: "bug"
+  color: "d73a4a"
+  description: "Something is not working or unexpected error"
+
+- name: "feature"
+  color: "a2eeef"
+  description: "New feature or enhancement"
+
+- name: "chore"
+  color: "fef2c0"
+  description: "Maintenance tasks, dependency updates, and housekeeping"
+
+- name: "ci"
+  color: "0075ca"
+  description: "CI/CD and workflow changes"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation or runbooks"
+
+- name: "test"
+  color: "5319e7"
+  description: "Adding or updating test suites and test fixtures"
+
+- name: "arch"
+  color: "7057ff"
+  description: "Architecture decisions and design records"
+
+- name: "dependencies"
+  color: "1d76db"
+  description: "Pull requests that update a dependency file"
+
+- name: "github_actions"
+  color: "000000"
+  description: "Pull requests that update GitHub Actions code"
+
+- name: "breaking-change"
+  color: "b60205"
+  description: "Introduces breaking API or schema changes"
+
+# --- Area Labels ---
+- name: "api"
+  color: "0e8a16"
+  description: "Endpoints, request and response contract, versioning"
+
+- name: "ocr"
+  color: "5319e7"
+  description: "obliq-ocr engine boundary and extraction results"
+
+- name: "dashboard"
+  color: "c5def5"
+  description: "Developer dashboard, API keys, credits and usage graphs"
+
+- name: "security"
+  color: "b60205"
+  description: "Authentication, secrets and security concerns"
+
+- name: "observability"
+  color: "bfd4f2"
+  description: "Logging, metrics, tracing, canary and alerting"
+
+- name: "privacy"
+  color: "d93f0b"
+  description: "Data handling, PII and retention"
+
+- name: "reliability"
+  color: "f9d0c4"
+  description: "Error handling, retries, rollback and uptime"
+
+- name: "performance"
+  color: "d4c5f9"
+  description: "Speed, scaling, capacity and resource usage"
+
+- name: "deployment"
+  color: "006b75"
+  description: "FastAPI Cloud apps, environments and releases"
+
+- name: "integration"
+  color: "1d76db"
+  description: "obliq-in-app client and contract tests"
+
+# --- Priority Labels ---
+- name: "high-priority"
+  color: "d73a4a"
+  description: "High priority item"
+
+- name: "medium-priority"
+  color: "fbca04"
+  description: "Medium priority item"
+
+- name: "low-priority"
+  color: "0e8a16"
+  description: "Low priority item"
+
+- name: "needs-triage"
+  color: "ededed"
+  description: "Requires triage by maintainers"
+
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers to the project"
+
+# --- Phase Trackers ---
+- name: "P-1"
+  color: "c2e0c6"
+  description: "Phase 1: Foundation"
+
+- name: "P-2"
+  color: "c2e0c6"
+  description: "Phase 2: Core API"
+
+- name: "P-3"
+  color: "c2e0c6"
+  description: "Phase 3: Security, privacy and API keys"
+
+- name: "P-4"
+  color: "c2e0c6"
+  description: "Phase 4: Reliability and observability"
+
+- name: "P-5"
+  color: "c2e0c6"
+  description: "Phase 5: Deployment"

@@ -1,0 +1,61 @@
+# FastAPI Cloud deployment ignore rules
+# Ensures tests, docs, and test fixtures are not uploaded on deploy
+
+# Tests and testing fixtures
+tests/
+tests/**
+sample/
+sample/**
+fixtures/
+fixtures/**
+*.pdf
+!tests/fixtures/golden_fixture.pdf
+
+# Documentation
+docs/
+docs/**
+*.md
+!README.md
+
+# Virtual environments and caches
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.benchmarks/
+
+# Git and CI/CD metadata
+.git/
+.github/
+.gitignore
+.gitattributes
+.fastapicloudignore
+
+# Local environment and secret files
+.env
+.env.*
+!.env.example
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Temporary files and logs
+*.log
+temp/
+tmp/

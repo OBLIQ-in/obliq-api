@@ -1,0 +1,59 @@
+# Path-based PR auto-labeling rules for actions/labeler v5
+
+api:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/obliq_api/api/**
+          - src/obliq_api/main.py
+          - src/obliq_api/schemas/**
+          - src/obliq_api/dependencies.py
+
+ocr:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/obliq_api/services/**
+          - src/obliq_api/engine/**
+          - app.py
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/obliq_api/core/**
+          - src/obliq_api/dependencies.py
+          - SECURITY.md
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/**
+          - Dockerfile
+          - requirements.txt
+          - packages.txt
+          - .fastapicloudignore
+
+deployment:
+  - changed-files:
+      - any-glob-to-any-file:
+          - app.py
+          - Dockerfile
+          - .github/workflows/cd.yml
+          - .fastapicloudignore
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - docs/**
+          - "**/*.md"
+          - "!.github/**"
+
+test:
+  - changed-files:
+      - any-glob-to-any-file:
+          - tests/**
+          - scripts/smoke_test.py
+
+feature:
+  - head-branch: ["^feat/", "^feature/"]
+
+bug:
+  - head-branch: ["^fix/", "^bugfix/"]

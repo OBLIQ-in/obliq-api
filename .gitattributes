@@ -1,0 +1,27 @@
+# Auto-detect text files and normalize line endings to LF on commit
+* text=auto eol=lf
+
+# Explicit text files
+*.py text diff=python
+*.json text
+*.yml text
+*.yaml text
+*.md text
+*.toml text
+*.ini text
+*.txt text
+*.sh text eol=lf
+*.sql text
+Dockerfile text
+
+# Explicit binary files
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.onnx binary
+*.zip binary
+*.tar.gz binary
