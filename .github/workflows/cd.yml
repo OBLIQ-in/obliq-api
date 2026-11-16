@@ -58,6 +58,9 @@ jobs:
       - name: Run Database Migrations (Staging)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: "migration_step_secret_key_minimum_32_characters_for_pydantic"
+          REDIS_URL: "redis://localhost:6379/0"
+          PYTHONPATH: src
         run: |
           pip install alembic asyncpg "sqlalchemy[asyncio]" pydantic pydantic-settings
           alembic upgrade head
@@ -127,6 +130,9 @@ jobs:
       - name: Run Database Migrations (Production)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: "migration_step_secret_key_minimum_32_characters_for_pydantic"
+          REDIS_URL: "redis://localhost:6379/0"
+          PYTHONPATH: src
         run: |
           pip install alembic asyncpg "sqlalchemy[asyncio]" pydantic pydantic-settings
           alembic upgrade head
