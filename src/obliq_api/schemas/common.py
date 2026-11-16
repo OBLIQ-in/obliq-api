@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Generic, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 T = TypeVar("T")
 
@@ -36,10 +36,10 @@ class PageResult(BaseModel):
     # "ok" | "blank" | "low_confidence" | "failed"
     status: str = "ok"
     # Fields populated by obliq-ocr; None when using the stub
-    method: str | None = None          # "text_layer" | "ocr" | "blank"
-    reason: str | None = None          # human-readable routing reason
-    n_chars: int | None = None         # character count on the page
-    seconds: float | None = None       # per-page processing time
+    method: str | None = None  # "text_layer" | "ocr" | "blank"
+    reason: str | None = None  # human-readable routing reason
+    n_chars: int | None = None  # character count on the page
+    seconds: float | None = None  # per-page processing time
     bounding_boxes: list[dict[str, Any]] | None = None
     error: str | None = None
 
@@ -50,7 +50,7 @@ class OCRResult(BaseModel):
     pages: list[PageResult]
     status: str  # succeeded | partial | failed
     processing_time_ms: int | None = None
-    device: str | None = None          # "CPU" | "CUDA" | "stub" etc.
+    device: str | None = None  # "CPU" | "CUDA" | "stub" etc.
 
 
 class JobStatusResponse(BaseModel):

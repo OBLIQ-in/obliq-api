@@ -18,10 +18,11 @@ GET /v1/dashboard/usage/daily
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -38,7 +39,6 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 # ---------------------------------------------------------------------------
 # Response models
 # ---------------------------------------------------------------------------
-from pydantic import BaseModel
 
 
 class KeySummary(BaseModel):
@@ -61,7 +61,7 @@ class DashboardSummary(BaseModel):
 
 
 class DailyUsage(BaseModel):
-    date: str          # ISO date string, e.g. "2026-11-15"
+    date: str  # ISO date string, e.g. "2026-11-15"
     jobs: int
     pages_processed: int
     credits_charged: int
@@ -76,18 +76,17 @@ class DailyUsageResponse(BaseModel):
 # Routes
 # ---------------------------------------------------------------------------
 
+
 @router.get("/summary", response_model=DashboardSummary)
 async def get_dashboard_summary(
     ctx: AuthContext = Depends(require_dashboard_user),
     db: AsyncSession = Depends(get_db),
 ) -> DashboardSummary:
     org_id: UUID = ctx.organisation_id
-    since = datetime.now(timezone.utc) - timedelta(days=30)
+    since = datetime.now(UTC) - timedelta(days=30)
 
     # Organisation
-    org_row = await db.execute(
-        select(Organisation).where(Organisation.id == org_id)
-    )
+    org_row = await db.execute(select(Organisation).where(Organisation.id == org_id))
     org = org_row.scalar_one()
 
     # Key counts
@@ -143,7 +142,7 @@ async def get_daily_usage(
 ) -> DailyUsageResponse:
     """Return per-day aggregated usage for the last ``days`` days (max 90)."""
     org_id: UUID = ctx.organisation_id
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=days)
 
     # Truncate created_at to day for grouping
     day_col = func.date_trunc("day", UsageRecord.created_at).label("day")

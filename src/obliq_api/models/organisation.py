@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, String, Text
+from sqlalchemy import BigInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from obliq_api.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -21,6 +21,6 @@ class Organisation(Base, UUIDPrimaryKeyMixin, TimestampMixin):
 
 
 # Avoid circular import issues at runtime
-from obliq_api.models.user import User  # noqa: E402
 from obliq_api.models.api_key import ApiKey  # noqa: E402
 from obliq_api.models.credit_ledger import CreditLedger  # noqa: E402
+from obliq_api.models.user import User  # noqa: E402

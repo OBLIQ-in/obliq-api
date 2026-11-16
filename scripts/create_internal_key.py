@@ -9,8 +9,6 @@ import asyncio
 import sys
 from uuid import UUID
 
-from sqlalchemy import select
-
 from obliq_api.auth.keys import generate_api_key
 from obliq_api.db.session import AsyncSessionLocal
 from obliq_api.models.api_key import ApiKey

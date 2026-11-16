@@ -21,10 +21,12 @@ import uvicorn
 
 from obliq_api.main import create_app
 
+
 @spaces.GPU
 def _status_runner(text: str = "Ready") -> str:
     """Return operational status for browser visitors."""
     return f"Obliq API operational: {text}"
+
 
 # Initialize core FastAPI backend
 fastapi_app = create_app()
@@ -54,6 +56,7 @@ if __name__ == "__main__":
     # Explicitly register with ZeroGPU broker on startup when running via Uvicorn
     try:
         from spaces import zero as _spaces_zero
+
         if hasattr(_spaces_zero, "startup"):
             _spaces_zero.startup()
             print("[INFO] ZeroGPU startup report dispatched successfully.", flush=True)

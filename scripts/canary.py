@@ -53,8 +53,12 @@ def main() -> int:
     parser.add_argument("--api-key", default=os.getenv("INTERNAL_KEY") or os.getenv("API_KEY"))
     parser.add_argument("--fixture", default="tests/fixtures/golden_fixture.pdf")
     parser.add_argument("--truth", default="tests/fixtures/golden_fixture_truth.txt")
-    parser.add_argument("--max-latency", type=float, default=5.0, help="Max allowed latency in seconds per page")
-    parser.add_argument("--max-cer", type=float, default=0.05, help="Max allowed Character Error Rate (default 5%)")
+    parser.add_argument(
+        "--max-latency", type=float, default=5.0, help="Max allowed latency in seconds per page"
+    )
+    parser.add_argument(
+        "--max-cer", type=float, default=0.05, help="Max allowed Character Error Rate (default 5%)"
+    )
     parser.add_argument("--webhook-url", default=os.getenv("ALERT_WEBHOOK_URL"))
     args = parser.parse_args()
 
@@ -90,14 +94,22 @@ def main() -> int:
             err_msg = f"Network failure calling POST /v1/jobs: {exc}"
             print(f"[CANARY] FAILED: {err_msg}", file=sys.stderr)
             if webhook_url:
-                send_alert(webhook_url, "API Endpoint Unreachable", {"base_url": base_url, "error": str(exc)})
+                send_alert(
+                    webhook_url,
+                    "API Endpoint Unreachable",
+                    {"base_url": base_url, "error": str(exc)},
+                )
             return 1
 
         if submit_resp.status_code != 202:
             err_msg = f"Submit returned status {submit_resp.status_code}: {submit_resp.text}"
             print(f"[CANARY] FAILED: {err_msg}", file=sys.stderr)
             if webhook_url:
-                send_alert(webhook_url, "Job Submit Failed", {"status_code": submit_resp.status_code, "body": submit_resp.text})
+                send_alert(
+                    webhook_url,
+                    "Job Submit Failed",
+                    {"status_code": submit_resp.status_code, "body": submit_resp.text},
+                )
             return 1
 
         job_id = submit_resp.json().get("id")
@@ -116,10 +128,16 @@ def main() -> int:
         total_latency = time.time() - t0
 
         if status != "succeeded":
-            err_msg = f"Job {job_id} did not succeed (status: {status}, elapsed: {total_latency:.2f}s)"
+            err_msg = (
+                f"Job {job_id} did not succeed (status: {status}, elapsed: {total_latency:.2f}s)"
+            )
             print(f"[CANARY] FAILED: {err_msg}", file=sys.stderr)
             if webhook_url:
-                send_alert(webhook_url, "OCR Job Failed or Timed Out", {"job_id": job_id, "status": status, "latency": total_latency})
+                send_alert(
+                    webhook_url,
+                    "OCR Job Failed or Timed Out",
+                    {"job_id": job_id, "status": status, "latency": total_latency},
+                )
             return 1
 
         # Fetch Result
@@ -137,24 +155,33 @@ def main() -> int:
         cer = calculate_cer(truth_text, extracted_text) if truth_text else 0.0
         accuracy = max(0.0, 1.0 - cer) * 100
 
-        print(f"[CANARY] Benchmark Results: Latency={total_latency:.2f}s | CER={cer:.4f} (Accuracy={accuracy:.1f}%)", flush=True)
+        print(
+            f"[CANARY] Benchmark Results: Latency={total_latency:.2f}s | CER={cer:.4f} (Accuracy={accuracy:.1f}%)",
+            flush=True,
+        )
 
         failures = []
         if total_latency > args.max_latency:
             failures.append(f"Latency SLA breached: {total_latency:.2f}s > {args.max_latency}s")
         if cer > args.max_cer:
-            failures.append(f"Accuracy SLA breached: CER {cer:.4f} > {args.max_cer} (Accuracy {accuracy:.1f}%)")
+            failures.append(
+                f"Accuracy SLA breached: CER {cer:.4f} > {args.max_cer} (Accuracy {accuracy:.1f}%)"
+            )
 
         if failures:
             print(f"[CANARY] FAILED: {'; '.join(failures)}", file=sys.stderr)
             if webhook_url:
-                send_alert(webhook_url, "SLA Regression Detected", {
-                    "base_url": base_url,
-                    "failures": failures,
-                    "latency_seconds": total_latency,
-                    "character_error_rate": cer,
-                    "accuracy_pct": accuracy,
-                })
+                send_alert(
+                    webhook_url,
+                    "SLA Regression Detected",
+                    {
+                        "base_url": base_url,
+                        "failures": failures,
+                        "latency_seconds": total_latency,
+                        "character_error_rate": cer,
+                        "accuracy_pct": accuracy,
+                    },
+                )
             return 1
 
     print("[CANARY] SUCCESS: All latency and accuracy SLAs verified!", flush=True)

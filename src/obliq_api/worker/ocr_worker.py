@@ -20,5 +20,6 @@ def run_ocr(file_path: str) -> dict:
     worker, not in the main process at import time.
     """
     from obliq_ocr import parse_document  # type: ignore[import-untyped]
+
     result = parse_document(file_path, verbose=False)
     return result.to_dict()

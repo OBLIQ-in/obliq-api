@@ -9,10 +9,11 @@ Usage:
 
 import sys
 import time
+
 import httpx
 
-BASE    = "http://localhost:8000"
-EMAIL   = "test@example.com"
+BASE = "http://localhost:8000"
+EMAIL = "test@example.com"
 PASSWORD = "password123"
 PDF_PATH = sys.argv[1] if len(sys.argv) > 1 else "sample/sample-file.pdf"
 
@@ -20,9 +21,9 @@ client = httpx.Client(base_url=BASE, timeout=60)
 
 
 def banner(title: str) -> None:
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  {title}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 # ── 1. Login ──────────────────────────────────────────────────
@@ -30,11 +31,14 @@ banner("1. Login")
 r = client.post("/v1/auth/login", json={"email": EMAIL, "password": PASSWORD})
 if r.status_code != 200:
     # Try registering if login fails
-    r = client.post("/v1/auth/register", json={
-        "organisation_name": "Test Org",
-        "email": EMAIL,
-        "password": PASSWORD,
-    })
+    r = client.post(
+        "/v1/auth/register",
+        json={
+            "organisation_name": "Test Org",
+            "email": EMAIL,
+            "password": PASSWORD,
+        },
+    )
     if r.status_code not in (200, 201):
         print("Register failed:", r.text)
         sys.exit(1)
@@ -80,13 +84,13 @@ print(f"Status : {job['status']}")
 
 # ── 5. Poll until terminal ────────────────────────────────────
 banner("5. Polling job status")
-for i in range(720):   # up to 60 minutes
+for i in range(720):  # up to 60 minutes
     time.sleep(5)
     r = client.get(f"/v1/jobs/{job_id}", headers=job_headers, timeout=10)
     j = r.json()
     status = j.get("status")
-    pages  = j.get("page_count", "?")
-    print(f"  [{i*5:>5}s] status={status:<12} pages={pages}")
+    pages = j.get("page_count", "?")
+    print(f"  [{i * 5:>5}s] status={status:<12} pages={pages}")
     if status in ("succeeded", "partial", "failed"):
         break
 else:
@@ -110,9 +114,11 @@ for p in result["pages"]:
     conf = p.get("confidence")
     conf_str = f"{conf:.2f}" if conf is not None else " n/a"
     text_preview = (p.get("text") or "")[:80].replace("\n", " ")
-    print(f"  Page {p['page_number']:>3}  [{p.get('method','?'):>12}]  conf={conf_str}  {p.get('seconds',0):.1f}s  chars={p.get('n_chars',0):>5}")
+    print(
+        f"  Page {p['page_number']:>3}  [{p.get('method', '?'):>12}]  conf={conf_str}  {p.get('seconds', 0):.1f}s  chars={p.get('n_chars', 0):>5}"
+    )
     if text_preview:
-        print(f"           \"{text_preview}\"")
+        print(f'           "{text_preview}"')
 
 # ── 7. Credits ────────────────────────────────────────────────
 banner("7. Credit balance")
@@ -124,7 +130,9 @@ print(f"Balance : {org['credit_balance']}")
 banner("8. Credit ledger (last 5 entries)")
 r = client.get("/v1/orgs/me/ledger", headers=dashboard_headers, timeout=10)
 for entry in r.json()["items"][:5]:
-    print(f"  {entry['entry_type']:<8}  amount={entry['amount']:>+7}  balance_after={entry['balance_after']}")
+    print(
+        f"  {entry['entry_type']:<8}  amount={entry['amount']:>+7}  balance_after={entry['balance_after']}"
+    )
 
 # ── 9. Dashboard summary ──────────────────────────────────────
 banner("9. Dashboard summary")
@@ -141,7 +149,9 @@ print(f"30d failures   : {s['usage_last_30_days']['failed_jobs']}")
 banner("10. Daily usage (last 7 days)")
 r = client.get("/v1/dashboard/usage/daily?days=7", headers=dashboard_headers, timeout=10)
 for day in r.json()["days"]:
-    print(f"  {day['date']}  jobs={day['jobs']}  pages={day['pages_processed']}  credits={day['credits_charged']}")
+    print(
+        f"  {day['date']}  jobs={day['jobs']}  pages={day['pages_processed']}  credits={day['credits_charged']}"
+    )
 
 print("\n✓ All endpoints tested successfully")
 client.close()

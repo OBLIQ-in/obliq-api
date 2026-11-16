@@ -144,8 +144,8 @@ class CreditService:
             .returning(Organisation.credit_balance)
         )
         result = await self.session.execute(stmt)
-        new_balance = result.scalar_one_or_none()
-        if new_balance is None:
+        extra_balance = result.scalar_one_or_none()
+        if extra_balance is None:
             # Not enough for the extra; leave as reserved amount
             return reserved
 
@@ -154,7 +154,7 @@ class CreditService:
                 organisation_id=organisation_id,
                 entry_type="settle",
                 amount=-extra,
-                balance_after=new_balance,
+                balance_after=extra_balance,
                 reference_type="job",
                 reference_id=reference_id,
             )

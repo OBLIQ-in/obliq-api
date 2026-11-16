@@ -18,7 +18,6 @@ import time
 import redis.asyncio as aioredis
 
 from obliq_api.config import get_settings
-from obliq_api.protocols import RateLimiter
 
 settings = get_settings()
 
@@ -93,7 +92,7 @@ class RedisRateLimiter:
         full_key = f"{self._prefix}{key}"
 
         try:
-            result = await client.eval(  # type: ignore[attr-defined]
+            result = await client.eval(  # type: ignore[attr-defined,misc]
                 _SLIDING_WINDOW_LUA,
                 1,  # number of KEYS
                 full_key,

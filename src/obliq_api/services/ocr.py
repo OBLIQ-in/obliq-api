@@ -83,6 +83,7 @@ def _get_process_pool() -> concurrent.futures.ProcessPoolExecutor:
 # Normalisation helpers
 # ---------------------------------------------------------------------------
 
+
 def _page_status(method: str, confidence: float | None) -> str:
     """Map obliq_ocr method/confidence to our internal page status."""
     if method == "blank":
@@ -133,6 +134,7 @@ def _normalise_result(raw: dict[str, Any], elapsed_ms: int) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Engine classes
 # ---------------------------------------------------------------------------
+
 
 class StubOCREngine:
     """Deterministic stub used when obliq-ocr is not installed."""

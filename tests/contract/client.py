@@ -11,7 +11,9 @@ from httpx import AsyncClient, Response
 
 
 class ObliqApiError(Exception):
-    def __init__(self, status_code: int, code: str, message: str, details: dict[str, Any] | None = None):
+    def __init__(
+        self, status_code: int, code: str, message: str, details: dict[str, Any] | None = None
+    ):
         super().__init__(f"[{status_code}] {code}: {message}")
         self.status_code = status_code
         self.code = code

@@ -106,7 +106,9 @@ def create_app() -> FastAPI:
         )
 
     @app.exception_handler(StarletteHTTPException)
-    async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> ORJSONResponse:
+    async def http_exception_handler(
+        request: Request, exc: StarletteHTTPException
+    ) -> ORJSONResponse:
         request_id = getattr(request.state, "request_id", None)
         body = ErrorResponse(
             error=ErrorDetail(
@@ -151,4 +153,5 @@ app = create_app()
 # (including settings validation) inside every OCR worker process.
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("obliq_api.main:app", host="0.0.0.0", port=8000, reload=True)
