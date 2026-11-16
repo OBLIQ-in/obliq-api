@@ -7,6 +7,13 @@ Listens on port 7860 (Hugging Face Spaces default).
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
+
+# Ensure src/ is on pythonpath in container
+src_dir = str(Path(__file__).parent / "src")
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 import gradio as gr
 import uvicorn
