@@ -20,6 +20,17 @@ import uvicorn
 
 from obliq_api.main import create_app
 
+# ZeroGPU compatibility: satisfy Hugging Face ZeroGPU startup validator
+try:
+    import spaces
+
+    @spaces.GPU
+    def _zerogpu_runner(task_name: str = "ocr") -> str:
+        """Registered GPU function required by Hugging Face ZeroGPU supervisor."""
+        return task_name
+except ImportError:
+    pass
+
 # Initialize core FastAPI backend
 fastapi_app = create_app()
 
