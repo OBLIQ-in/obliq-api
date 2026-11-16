@@ -25,6 +25,7 @@ def generate_api_key(*, internal: bool = False) -> tuple[str, str, str]:
 
 def hash_api_key(key: str) -> str:
     # Fast keyed hash for high-volume lookup (not password hashing)
+    # codeql[py/weak-sensitive-data-hashing]
     return hashlib.blake2b(
         key.encode("utf-8"),
         key=settings.secret_key.encode("utf-8")[:64],
