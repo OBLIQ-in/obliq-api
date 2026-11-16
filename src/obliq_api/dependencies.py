@@ -135,7 +135,12 @@ async def require_api_key(
         raise AuthenticationError("Invalid API key format")
 
     # Look up by prefix first for speed
-    prefix = token[: len(settings.api_key_prefix) + 8]
+    prefix_len = (
+        len(settings.internal_key_prefix) + 8
+        if token.startswith(settings.internal_key_prefix)
+        else len(settings.api_key_prefix) + 8
+    )
+    prefix = token[:prefix_len]
     result = await db.execute(
         select(ApiKey).where(
             ApiKey.key_prefix == prefix,
