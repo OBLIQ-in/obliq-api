@@ -1,0 +1,17 @@
+# CODEOWNERS for OBLIQ obliq-api
+# Defines default maintainers and required reviews for critical paths
+
+* @Naman-iitm @Shivansh1205 @Paras-ydv @AdeshDeshmukh @riyashikanedunchezhian-lgtm @abhirajadhikary06
+
+# Core application engine, API routing and authentication
+/src/obliq_api/core/           @Naman-iitm @abhirajadhikary06
+/src/obliq_api/api/            @Naman-iitm @abhirajadhikary06
+/src/obliq_api/dependencies.py @Naman-iitm @abhirajadhikary06
+
+# Database schemas and migrations
+/alembic/                      @Naman-iitm @abhirajadhikary06
+
+# CI/CD Workflows, security checks, and deployment configuration
+/.github/workflows/            @Naman-iitm @abhirajadhikary06
+/Dockerfile                    @Naman-iitm @abhirajadhikary06
+/app.py                        @Naman-iitm @abhirajadhikary06

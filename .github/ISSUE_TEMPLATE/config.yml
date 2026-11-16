@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Community Discussions & Questions
+    url: https://github.com/OBLIQ-in/obliq-api/discussions
+    about: Ask questions, share ideas, or discuss integrations with the OBLIQ team.
+  - name: Security Vulnerability Reporting
+    url: https://github.com/OBLIQ-in/obliq-api/security/advisories/new
+    about: Report security or tenant isolation vulnerabilities privately.
+  - name: Contributing Guidelines
+    url: https://github.com/OBLIQ-in/obliq-api/blob/main/CONTRIBUTING.md
+    about: Learn how to set up the repository, branch, and submit pull requests.
