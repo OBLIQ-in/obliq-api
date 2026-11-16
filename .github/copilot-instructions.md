@@ -66,9 +66,7 @@ When assisting with code generation, chat, or reviewing pull requests, strictly 
     import uuid
     from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     ```
     *Never use dialect `Mapped[UUID]` directly as a mapped type, as this breaks Mypy static analysis.*
 - **Migrations:**
