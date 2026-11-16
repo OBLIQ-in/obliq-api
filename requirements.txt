@@ -23,6 +23,6 @@ orjson>=3.10,<4
 aiofiles>=22.0,<25
 email-validator>=2.2,<3
 psycopg2-binary
-gradio>=4.0
+gradio>=6.32.0
 huggingface-hub<1.0.0
 spaces
