@@ -95,20 +95,26 @@ jobs:
       - name: Run Smoke Test Script
         env:
           STAGING_URL: ${{ secrets.API_BASE_URL }}
+          HF_SPACE_STAGING: ${{ secrets.HF_SPACE_STAGING }}
           INTERNAL_KEY: ${{ secrets.INTERNAL_KEY }}
         run: |
-          # Allow container build time on Hugging Face (polling loop)
+          TARGET_URL="${STAGING_URL}"
+          if [ -z "$TARGET_URL" ]; then
+            CLEAN_NAME=$(echo "$HF_SPACE_STAGING" | tr '/' '-' | tr '_' '-')
+            TARGET_URL="https://${CLEAN_NAME}.hf.space"
+          fi
+          echo "Target Staging URL: $TARGET_URL"
           echo "Waiting for Staging Space container build..."
           for i in {1..30}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_URL/health" || echo "000")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL/health" || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "Staging is alive!"
               break
             fi
-            echo "Waiting for container (attempt $i/30)..."
+            echo "Waiting for container (attempt $i/30, status=$STATUS)..."
             sleep 10
           done
-          python scripts/smoke_test.py --base-url "$STAGING_URL" --api-key "$INTERNAL_KEY"
+          python scripts/smoke_test.py --base-url "$TARGET_URL" --api-key "$INTERNAL_KEY"
 
   # ── 4. Production Deployment (Gated by Reviewer Approval) ───────────────────
   deploy-production:
@@ -167,16 +173,23 @@ jobs:
       - name: Run Smoke Test Script
         env:
           PROD_URL: ${{ secrets.API_BASE_URL }}
+          HF_SPACE_PRODUCTION: ${{ secrets.HF_SPACE_PRODUCTION }}
           INTERNAL_KEY: ${{ secrets.INTERNAL_KEY }}
         run: |
+          TARGET_URL="${PROD_URL}"
+          if [ -z "$TARGET_URL" ]; then
+            CLEAN_NAME=$(echo "$HF_SPACE_PRODUCTION" | tr '/' '-' | tr '_' '-')
+            TARGET_URL="https://${CLEAN_NAME}.hf.space"
+          fi
+          echo "Target Production URL: $TARGET_URL"
           echo "Waiting for Production Space container build..."
           for i in {1..30}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL/health" || echo "000")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL/health" || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "Production is alive!"
               break
             fi
-            echo "Waiting for container (attempt $i/30)..."
+            echo "Waiting for container (attempt $i/30, status=$STATUS)..."
             sleep 10
           done
-          python scripts/smoke_test.py --base-url "$PROD_URL" --api-key "$INTERNAL_KEY"
+          python scripts/smoke_test.py --base-url "$TARGET_URL" --api-key "$INTERNAL_KEY"
