@@ -25,45 +25,34 @@ try:
     import spaces
 
     @spaces.GPU
-    def _zerogpu_runner(text: str = "") -> str:
+    def _zerogpu_runner(text: str = "Ready") -> str:
         """Registered GPU function required by Hugging Face ZeroGPU supervisor."""
-        return text
+        return f"Obliq API operational: {text}"
 except ImportError:
-    def _zerogpu_runner(text: str = "") -> str:
-        return text
+    def _zerogpu_runner(text: str = "Ready") -> str:
+        return f"Obliq API operational: {text}"
 
 # Initialize core FastAPI backend
 fastapi_app = create_app()
 
-# Create status overview dashboard for browser visitors
-with gr.Blocks(title="Obliq OCR API") as demo:
-    gr.Markdown(
-        """
-        # 🚀 Obliq API Service
-        **High-performance Multi-Tenant Asynchronous OCR & Document Engine**
-
-        ---
-
-        ### 📡 Service Health & Endpoints
-        - **Health Probe:** [`/health`](/health)
-        - **Readiness Probe:** [`/ready`](/ready)
-        - **Interactive OpenAPI Docs:** [`/docs`](/docs)
-        - **ReDoc Specification:** [`/redoc`](/redoc)
-
-        ### 🔐 Core API Routes (v1)
-        - `POST /v1/jobs` — Upload & process documents (PDF, PNG, JPEG, TIFF)
-        - `GET /v1/jobs/{id}` — Poll job processing status
-        - `GET /v1/jobs/{id}/result` — Retrieve structured OCR text & page data
-        - `GET /v1/dashboard/summary` — Developer usage & credit balance
-        """
-    )
-
-    # Wire the @spaces.GPU function to a hidden event listener for ZeroGPU startup detection
-    _dummy_btn = gr.Button("ZeroGPU Check", visible=False)
-    _dummy_out = gr.Textbox(visible=False)
-    _dummy_btn.click(fn=_zerogpu_runner, inputs=[], outputs=_dummy_out)
+# Create status overview dashboard for browser visitors using gr.Interface
+# This explicitly satisfies the ZeroGPU startup validator while serving our FastAPI backend.
+demo = gr.Interface(
+    fn=_zerogpu_runner,
+    inputs=gr.Textbox(label="Status Check", value="Ready"),
+    outputs=gr.Textbox(label="System Status"),
+    title="🚀 Obliq OCR API Service",
+    description=(
+        "**High-performance Multi-Tenant Asynchronous OCR & Document Engine**\n\n"
+        "- **Health Probe:** `/health`\n"
+        "- **Readiness Probe:** `/ready`\n"
+        "- **Interactive OpenAPI Docs:** `/docs`\n"
+        "- **Core Endpoints:** `/v1/jobs`, `/v1/orgs/me`, `/v1/dashboard/summary`"
+    ),
+)
 
 # Mount Gradio onto the root of FastAPI
+app = gr.mount_gradio_app(fastapi_app, demo, path="/")
 # All custom FastAPI routes (/health, /ready, /v1/*, /docs) take precedence,
 # while browser visitors hitting the root URL see the interactive status dashboard!
 app = gr.mount_gradio_app(fastapi_app, demo, path="/")
