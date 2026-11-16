@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import shutil
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -48,7 +48,7 @@ class JobService:
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         job_id = uuid4()
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         async with save_upload_temporarily(upload) as tmp_path:
             size = tmp_path.stat().st_size
@@ -70,6 +70,7 @@ class JobService:
             # Persist a copy for the background task
             fd, work_name = tempfile.mkstemp(suffix=tmp_path.suffix)
             import os
+
             os.close(fd)
             work_path = Path(work_name)
             shutil.copy2(tmp_path, work_path)
@@ -143,6 +144,7 @@ class JobService:
 # the HTTP request that spawned it.
 # ---------------------------------------------------------------------------
 
+
 async def _process_job(
     *,
     job_store: JobStore,
@@ -156,7 +158,7 @@ async def _process_job(
     estimated_pages: int,
     request_id: str,
 ) -> None:
-    start = datetime.now(timezone.utc)
+    start = datetime.now(UTC)
     actual_pages = 0
     charged = 0
     error_code: str | None = None
@@ -177,7 +179,7 @@ async def _process_job(
                 job_id,
                 {
                     "status": "processing",
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(UTC).isoformat(),
                 },
             )
             bound_log.info("job.processing")
@@ -220,7 +222,7 @@ async def _process_job(
                     "status": final_status,
                     "page_count": actual_pages,
                     "charged_credits": charged,
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(UTC).isoformat(),
                 },
             )
 
@@ -238,9 +240,7 @@ async def _process_job(
                 actual_pages=actual_pages,
                 charged_credits=charged,
                 low_confidence_pages=len(low_conf_pages),
-                page_durations_seconds=[
-                    p.get("seconds", 0.0) for p in result.get("pages", [])
-                ],
+                page_durations_seconds=[p.get("seconds", 0.0) for p in result.get("pages", [])],
             )
 
         except Exception as exc:
@@ -264,7 +264,7 @@ async def _process_job(
                     "status": "failed",
                     "error_code": error_code,
                     "error_message": str(exc)[:200],
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(UTC).isoformat(),
                 },
             )
 
@@ -283,9 +283,7 @@ async def _process_job(
             except OSError:
                 pass
 
-            duration_ms = int(
-                (datetime.now(timezone.utc) - start).total_seconds() * 1000
-            )
+            duration_ms = int((datetime.now(UTC) - start).total_seconds() * 1000)
             usage = UsageRecord(
                 organisation_id=organisation_id,
                 api_key_id=api_key_id,

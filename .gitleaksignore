@@ -1,0 +1,5 @@
+# Gitleaks ignore list
+# Format: <commit>:<file>:<rule-id>:<line-number>
+
+# Historic commit from initial prototype (revoked local development key, replaced with CLI arg)
+aff34396170ddac267d817493f11eecfb4cda3d6:scripts/poll_job.py:generic-api-key:5

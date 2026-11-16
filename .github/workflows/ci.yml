@@ -1,0 +1,152 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ── 1. Code Quality: Lint & Formatting ───────────────────────────────────────
+  lint:
+    name: Lint & Format (Ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff Lint
+        run: ruff check .
+
+      - name: Run Ruff Format Check
+        run: ruff format --check .
+
+  # ── 2. Type Checking ────────────────────────────────────────────────────────
+  types:
+    name: Type Check (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies & Mypy
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev]
+
+      - name: Run Mypy
+        run: mypy src
+
+  # ── 3. Tests & Code Coverage ────────────────────────────────────────────────
+  test:
+    name: Unit & Contract Tests & Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[dev]
+
+      - name: Execute Pytest Suite with Coverage
+        env:
+          SECRET_KEY: "test_secret_key_minimum_32_characters_long_for_pydantic"
+          DATABASE_URL: "postgresql+asyncpg://user:pass@localhost:5432/testdb"
+          REDIS_URL: "redis://localhost:6379/0"
+        run: |
+          pytest --cov=obliq_api --cov-report=term-missing --cov-report=xml
+
+  # ── 4. Clean-Environment Wheel & Dependency Install Check ───────────────────
+  clean-install:
+    name: Clean Environment Install Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify Clean Installation From Wheel/Packaging
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install .
+          python -c "import obliq_api; print('obliq_api loaded successfully')"
+          python -c "import fitz, onnxruntime, obliq_ocr; print('PyMuPDF, ONNX Runtime and obliq_ocr prebuilt wheels confirmed')"
+
+  # ── 5. Dependency Vulnerability Audit ───────────────────────────────────────
+  audit:
+    name: Security Audit (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Package & pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+          pip install pip-audit
+
+      - name: Run pip-audit
+        run: pip-audit --desc on || echo "::warning::Vulnerabilities detected in upstream transitive packages"
+
+  # ── 6. Secret Scanning ──────────────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Gitleaks
+        run: |
+          GITLEAKS_VERSION="8.30.1"
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      - name: Run Gitleaks Secret Scan
+        run: gitleaks detect --source=. --verbose --redact

@@ -71,6 +71,4 @@ def configure_logging() -> None:
 
     # Quieten noisy third-party loggers in production
     for noisy in ("uvicorn.access", "sqlalchemy.engine"):
-        logging.getLogger(noisy).setLevel(
-            logging.WARNING if use_json else level
-        )
+        logging.getLogger(noisy).setLevel(logging.WARNING if use_json else level)

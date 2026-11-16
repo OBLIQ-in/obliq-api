@@ -36,8 +36,14 @@ def log(msg: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Obliq API Post-Deploy Smoke Verification")
-    parser.add_argument("--base-url", default=os.getenv("BASE_URL", "http://localhost:8000"), help="API Base URL")
-    parser.add_argument("--api-key", default=os.getenv("INTERNAL_KEY") or os.getenv("API_KEY"), help="API Key for E2E check")
+    parser.add_argument(
+        "--base-url", default=os.getenv("BASE_URL", "http://localhost:8000"), help="API Base URL"
+    )
+    parser.add_argument(
+        "--api-key",
+        default=os.getenv("INTERNAL_KEY") or os.getenv("API_KEY"),
+        help="API Key for E2E check",
+    )
     parser.add_argument("--timeout", type=float, default=90.0, help="Total timeout in seconds")
     args = parser.parse_args()
 
@@ -90,7 +96,9 @@ def main() -> int:
                 # Submit
                 submit_resp = client.post("/v1/jobs", headers=headers, files=files)
                 if submit_resp.status_code != 202:
-                    log(f"FAILED: Submit job returned status {submit_resp.status_code}: {submit_resp.text}")
+                    log(
+                        f"FAILED: Submit job returned status {submit_resp.status_code}: {submit_resp.text}"
+                    )
                     if submit_resp.status_code == 401:
                         log(
                             "Check that INTERNAL_KEY is the full active key registered in the target "
@@ -110,7 +118,9 @@ def main() -> int:
                 while time.time() - start_time < timeout:
                     status_resp = client.get(f"/v1/jobs/{job_id}", headers=headers)
                     if status_resp.status_code != 200:
-                        log(f"FAILED: Polling status returned {status_resp.status_code}: {status_resp.text}")
+                        log(
+                            f"FAILED: Polling status returned {status_resp.status_code}: {status_resp.text}"
+                        )
                         return 1
 
                     status_data = status_resp.json()

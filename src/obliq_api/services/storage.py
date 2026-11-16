@@ -1,9 +1,9 @@
 import tempfile
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 from fastapi import UploadFile
 
 from obliq_api.config import get_settings
@@ -86,7 +86,5 @@ async def save_upload_temporarily(
         yield tmp_path
     finally:
         if tmp_path and tmp_path.exists():
-            try:
+            with suppress(OSError):
                 tmp_path.unlink()
-            except OSError:
-                pass

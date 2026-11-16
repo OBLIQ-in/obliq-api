@@ -1,14 +1,14 @@
 import asyncio
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
 from obliq_api.config import get_settings
-from obliq_api.models.base import Base
 from obliq_api.models import *  # noqa: F401,F403
+from obliq_api.models.base import Base
 
 config = context.config
 if config.config_file_name is not None:

@@ -73,7 +73,11 @@ async def login(
 ) -> TokenResponse:
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
-    if user is None or not user.password_hash or not verify_password(body.password, user.password_hash):
+    if (
+        user is None
+        or not user.password_hash
+        or not verify_password(body.password, user.password_hash)
+    ):
         raise AuthenticationError("Invalid email or password")
     if not user.is_active:
         raise AuthenticationError("Account is inactive")
@@ -118,7 +122,11 @@ async def refresh(
 
 @router.get("/me", response_model=UserPublic)
 async def me(
-    ctx=Depends(__import__("obliq_api.dependencies", fromlist=["require_dashboard_user"]).require_dashboard_user),
+    ctx=Depends(
+        __import__(
+            "obliq_api.dependencies", fromlist=["require_dashboard_user"]
+        ).require_dashboard_user
+    ),
 ) -> UserPublic:
     assert ctx.user
     return UserPublic(

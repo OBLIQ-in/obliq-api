@@ -46,7 +46,9 @@ class ObliqApiUser(HttpUser):
         files = {"file": ("document.pdf", TINY_PDF, "application/pdf")}
 
         # 1. Submit job
-        with self.client.post("/v1/jobs", headers=headers, files=files, catch_response=True) as resp:
+        with self.client.post(
+            "/v1/jobs", headers=headers, files=files, catch_response=True
+        ) as resp:
             if resp.status_code == 202:
                 resp.success()
                 job_id = resp.json().get("id")
@@ -64,7 +66,9 @@ class ObliqApiUser(HttpUser):
         # 2. Poll for completion
         for _ in range(20):
             time.sleep(0.5)
-            with self.client.get(f"/v1/jobs/{job_id}", headers=self.headers, catch_response=True) as poll_resp:
+            with self.client.get(
+                f"/v1/jobs/{job_id}", headers=self.headers, catch_response=True
+            ) as poll_resp:
                 if poll_resp.status_code == 200:
                     status = poll_resp.json().get("status")
                     if status in ("succeeded", "partial"):
@@ -86,6 +90,7 @@ class ObliqApiUser(HttpUser):
 
 class BurstUser(HttpUser):
     """High-frequency traffic to stress-test rate limiter and concurrency bounds."""
+
     wait_time = between(0.1, 0.3)
 
     def on_start(self):
@@ -96,7 +101,9 @@ class BurstUser(HttpUser):
     def burst_submissions(self):
         """Flood submit requests to verify 429 Retry-After responses without server crash."""
         files = {"file": ("burst.pdf", TINY_PDF, "application/pdf")}
-        with self.client.post("/v1/jobs", headers=self.headers, files=files, catch_response=True) as resp:
+        with self.client.post(
+            "/v1/jobs", headers=self.headers, files=files, catch_response=True
+        ) as resp:
             if resp.status_code in (202, 429):
                 resp.success()
             else:

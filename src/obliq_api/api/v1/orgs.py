@@ -18,9 +18,7 @@ async def get_my_org(
     ctx: AuthContext = Depends(require_dashboard_user),
     db: AsyncSession = Depends(get_db),
 ) -> OrganisationPublic:
-    result = await db.execute(
-        select(Organisation).where(Organisation.id == ctx.organisation_id)
-    )
+    result = await db.execute(select(Organisation).where(Organisation.id == ctx.organisation_id))
     org = result.scalar_one()
     return OrganisationPublic.model_validate(org)
 

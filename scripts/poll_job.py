@@ -47,7 +47,9 @@ def main() -> int:
         response = client.get(f"{base_url}/v1/jobs/{args.job_id}/result", headers=headers)
         response.raise_for_status()
         result = response.json()
-        print(f"\nPages: {result['page_count']}  Device: {result.get('device')}  Status: {result['status']}")
+        print(
+            f"\nPages: {result['page_count']}  Device: {result.get('device')}  Status: {result['status']}"
+        )
         for page in result["pages"]:
             confidence = page.get("confidence")
             confidence_text = f"{confidence:.2f}" if confidence is not None else "n/a"

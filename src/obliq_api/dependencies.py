@@ -52,6 +52,7 @@ def get_rate_limiter() -> RateLimiter:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 async def get_request_id(request: Request) -> str:
     return getattr(request.state, "request_id", "unknown")
 
@@ -59,6 +60,7 @@ async def get_request_id(request: Request) -> str:
 # ---------------------------------------------------------------------------
 # Auth context
 # ---------------------------------------------------------------------------
+
 
 class AuthContext:
     def __init__(
@@ -78,6 +80,7 @@ class AuthContext:
 # ---------------------------------------------------------------------------
 # Rate-limit helper (not a FastAPI dependency — called explicitly in routes)
 # ---------------------------------------------------------------------------
+
 
 async def check_rate_limits(
     request: Request,
@@ -120,6 +123,7 @@ async def check_rate_limits(
 # FastAPI auth dependencies
 # ---------------------------------------------------------------------------
 
+
 async def require_api_key(
     authorization: Annotated[str | None, Header()] = None,
     db: AsyncSession = Depends(get_db),
@@ -129,8 +133,7 @@ async def require_api_key(
 
     token = authorization.split(" ", 1)[1].strip()
     if not (
-        token.startswith(settings.api_key_prefix)
-        or token.startswith(settings.internal_key_prefix)
+        token.startswith(settings.api_key_prefix) or token.startswith(settings.internal_key_prefix)
     ):
         raise AuthenticationError("Invalid API key format")
 
@@ -173,9 +176,7 @@ async def require_dashboard_user(
     user_id = UUID(payload["sub"])
     org_id = UUID(payload["org"])
 
-    result = await db.execute(
-        select(User).where(User.id == user_id, User.is_active.is_(True))
-    )
+    result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
     user = result.scalar_one_or_none()
     if user is None or user.organisation_id != org_id:
         raise AuthenticationError("User not found or inactive")

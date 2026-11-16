@@ -1,12 +1,13 @@
 """Contract tests for error envelopes across all obliq-api endpoints."""
 
 from uuid import uuid4
+
 import pytest
 from httpx import AsyncClient
 
 from obliq_api import dependencies
 from obliq_api.dependencies import AuthContext
-from tests.contract.client import ObliqClient, ObliqApiError
+from tests.contract.client import ObliqApiError, ObliqClient
 
 
 @pytest.mark.asyncio

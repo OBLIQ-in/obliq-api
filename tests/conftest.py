@@ -1,4 +1,5 @@
 import os
+
 import pytest
 
 # Ensure dummy environment variables are present before obliq_api modules are imported
@@ -6,12 +7,13 @@ os.environ.setdefault("SECRET_KEY", "test_secret_key_minimum_32_characters_long_
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://user:pass@localhost:5432/testdb")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 
-from httpx import ASGITransport, AsyncClient
 from unittest.mock import AsyncMock, MagicMock
 
+from httpx import ASGITransport, AsyncClient
+
+import obliq_api.main
 from obliq_api import dependencies
 from obliq_api.db.session import get_db
-import obliq_api.main
 from obliq_api.main import create_app
 
 
@@ -19,6 +21,7 @@ def pytest_sessionfinish(session, exitstatus):
     """Shutdown OpenTelemetry background exporters so they don't log on closed stdout."""
     try:
         from opentelemetry import metrics, trace
+
         tp = trace.get_tracer_provider()
         if hasattr(tp, "shutdown"):
             tp.shutdown()
@@ -31,6 +34,7 @@ def pytest_sessionfinish(session, exitstatus):
 
 class MockJobStore:
     """In-memory stub for RedisJobStore so tests don't touch live Redis."""
+
     def __init__(self):
         self.jobs = {}
         self.results = {}
@@ -64,7 +68,10 @@ class MockJobStore:
 
 class MockRateLimiter:
     """In-memory stub for RateLimiter so tests don't connect to Upstash."""
-    async def is_allowed(self, key: str, *, limit: int, window_seconds: int = 60) -> tuple[bool, int]:
+
+    async def is_allowed(
+        self, key: str, *, limit: int, window_seconds: int = 60
+    ) -> tuple[bool, int]:
         return True, 0
 
     async def health_check(self) -> bool:
@@ -76,6 +83,7 @@ class MockRateLimiter:
 
 class MockOCREngine:
     """Fast stub for OCR engine."""
+
     async def health_check(self) -> bool:
         return True
 
@@ -113,6 +121,7 @@ def mock_dependencies_globally(monkeypatch):
     dependencies._ocr_engine = ocr_engine
 
     import obliq_api.api.v1.jobs as jobs_mod
+
     monkeypatch.setattr(jobs_mod, "get_job_store", lambda: job_store)
     monkeypatch.setattr(jobs_mod, "get_rate_limiter", lambda: rate_limiter)
     monkeypatch.setattr(jobs_mod, "get_ocr_engine", lambda: ocr_engine)

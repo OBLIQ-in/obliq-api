@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from uuid import UUID, uuid4
+
 import pytest
 from httpx import AsyncClient
 
@@ -16,20 +17,25 @@ from tests.contract.client import ObliqClient
 def auth_override(app):
     """Overrides require_api_key dependency so authentication succeeds."""
     org_id = uuid4()
-    dummy_key = ApiKey(id=uuid4(), organisation_id=org_id, name="contract-test-key", key_prefix="obliq_live_")
+    dummy_key = ApiKey(
+        id=uuid4(), organisation_id=org_id, name="contract-test-key", key_prefix="obliq_live_"
+    )
     auth_ctx = AuthContext(organisation_id=org_id, api_key=dummy_key, is_internal=False)
     app.dependency_overrides[dependencies.require_api_key] = lambda: auth_ctx
     return auth_ctx
 
 
 @pytest.mark.asyncio
-async def test_submit_job_contract_shape(client: AsyncClient, auth_override, monkeypatch: pytest.MonkeyPatch):
+async def test_submit_job_contract_shape(
+    client: AsyncClient, auth_override, monkeypatch: pytest.MonkeyPatch
+):
     """
     Contract: POST /v1/jobs
     - Status code: 202 Accepted
     - Body fields: 'id' (UUID string), 'status' ('queued')
     """
     mock_job_id = uuid4()
+
     async def mock_submit(*args, **kwargs):
         return {"id": str(mock_job_id), "status": "queued"}
 
@@ -48,7 +54,9 @@ async def test_submit_job_contract_shape(client: AsyncClient, auth_override, mon
 
 
 @pytest.mark.asyncio
-async def test_get_job_status_contract_shape(client: AsyncClient, auth_override, monkeypatch: pytest.MonkeyPatch):
+async def test_get_job_status_contract_shape(
+    client: AsyncClient, auth_override, monkeypatch: pytest.MonkeyPatch
+):
     """
     Contract: GET /v1/jobs/{job_id}
     - Status code: 200 OK
@@ -80,7 +88,9 @@ async def test_get_job_status_contract_shape(client: AsyncClient, auth_override,
 
 
 @pytest.mark.asyncio
-async def test_get_job_result_contract_shape(client: AsyncClient, auth_override, monkeypatch: pytest.MonkeyPatch):
+async def test_get_job_result_contract_shape(
+    client: AsyncClient, auth_override, monkeypatch: pytest.MonkeyPatch
+):
     """
     Contract: GET /v1/jobs/{job_id}/result
     - Status code: 200 OK
@@ -131,7 +141,9 @@ async def test_get_job_result_contract_shape(client: AsyncClient, auth_override,
 
 
 @pytest.mark.asyncio
-async def test_client_poll_until_complete(client: AsyncClient, auth_override, monkeypatch: pytest.MonkeyPatch):
+async def test_client_poll_until_complete(
+    client: AsyncClient, auth_override, monkeypatch: pytest.MonkeyPatch
+):
     """Tests the client poll_until_complete lifecycle (queued -> succeeded -> fetch result)."""
     job_id = uuid4()
     calls = 0

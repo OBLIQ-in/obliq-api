@@ -47,7 +47,7 @@ _jobs_counter: metrics.Counter | None = None
 _credits_counter: metrics.Counter | None = None
 
 
-def configure_telemetry(app: "FastAPI") -> None:
+def configure_telemetry(app: FastAPI) -> None:
     """Initialise the OTel SDK and instrument FastAPI, SQLAlchemy, and Redis."""
     from obliq_api.config import get_settings
     from obliq_api.db.session import engine
@@ -63,6 +63,7 @@ def configure_telemetry(app: "FastAPI") -> None:
         from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
             OTLPSpanExporter,
         )
+
         span_exporter = OTLPSpanExporter(endpoint=endpoint, insecure=True)
     else:
         span_exporter = ConsoleSpanExporter()  # type: ignore[assignment]
@@ -76,6 +77,7 @@ def configure_telemetry(app: "FastAPI") -> None:
         from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
             OTLPMetricExporter,
         )
+
         metric_exporter = OTLPMetricExporter(endpoint=endpoint, insecure=True)
     else:
         metric_exporter = ConsoleMetricExporter()  # type: ignore[assignment]
