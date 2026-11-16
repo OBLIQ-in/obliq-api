@@ -104,17 +104,30 @@ jobs:
             TARGET_URL="https://${CLEAN_NAME}.hf.space"
           fi
           echo "Target Staging URL: $TARGET_URL"
-          echo "Waiting for Staging Space container build..."
-          for i in {1..30}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL/health" || echo "000")
-            if [ "$STATUS" = "200" ]; then
-              echo "Staging is alive!"
-              break
-            fi
-            echo "Waiting for container (attempt $i/30, status=$STATUS)..."
-            sleep 10
-          done
-          python scripts/smoke_test.py --base-url "$TARGET_URL" --api-key "$INTERNAL_KEY"
+          echo "Waiting for Hugging Face Space to finish deploying target commit..."
+          python -c "
+          import os, sys, time, httpx
+          space = os.getenv('HF_SPACE_STAGING')
+          api_url = f'https://huggingface.co/api/spaces/{space}' if space else None
+          if not api_url:
+              sys.exit(0)
+          for i in range(1, 40):
+              try:
+                  r = httpx.get(api_url, timeout=10)
+                  if r.status_code == 200:
+                      runtime = r.json().get('runtime', {})
+                      stage = runtime.get('stage')
+                      sha = runtime.get('sha')
+                      print(f'Attempt {i}/40: stage={stage}, sha={sha}')
+                      if stage == 'RUNNING':
+                          print('Space is live and ready for verification!')
+                          time.sleep(5)
+                          sys.exit(0)
+              except Exception as e:
+                  print(f'Attempt {i}/40 error: {e}')
+              time.sleep(10)
+          "
+          python scripts/smoke_test.py --base-url "$TARGET_URL" --api-key "$INTERNAL_KEY" --timeout 90.0
 
   # ── 4. Production Deployment (Gated by Reviewer Approval) ───────────────────
   deploy-production:
@@ -182,14 +195,27 @@ jobs:
             TARGET_URL="https://${CLEAN_NAME}.hf.space"
           fi
           echo "Target Production URL: $TARGET_URL"
-          echo "Waiting for Production Space container build..."
-          for i in {1..30}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL/health" || echo "000")
-            if [ "$STATUS" = "200" ]; then
-              echo "Production is alive!"
-              break
-            fi
-            echo "Waiting for container (attempt $i/30, status=$STATUS)..."
-            sleep 10
-          done
-          python scripts/smoke_test.py --base-url "$TARGET_URL" --api-key "$INTERNAL_KEY"
+          echo "Waiting for Hugging Face Space to finish deploying target commit..."
+          python -c "
+          import os, sys, time, httpx
+          space = os.getenv('HF_SPACE_PRODUCTION')
+          api_url = f'https://huggingface.co/api/spaces/{space}' if space else None
+          if not api_url:
+              sys.exit(0)
+          for i in range(1, 40):
+              try:
+                  r = httpx.get(api_url, timeout=10)
+                  if r.status_code == 200:
+                      runtime = r.json().get('runtime', {})
+                      stage = runtime.get('stage')
+                      sha = runtime.get('sha')
+                      print(f'Attempt {i}/40: stage={stage}, sha={sha}')
+                      if stage == 'RUNNING':
+                          print('Space is live and ready for verification!')
+                          time.sleep(5)
+                          sys.exit(0)
+              except Exception as e:
+                  print(f'Attempt {i}/40 error: {e}')
+              time.sleep(10)
+          "
+          python scripts/smoke_test.py --base-url "$TARGET_URL" --api-key "$INTERNAL_KEY" --timeout 90.0

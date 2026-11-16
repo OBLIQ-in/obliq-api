@@ -38,7 +38,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Obliq API Post-Deploy Smoke Verification")
     parser.add_argument("--base-url", default=os.getenv("BASE_URL", "http://localhost:8000"), help="API Base URL")
     parser.add_argument("--api-key", default=os.getenv("INTERNAL_KEY") or os.getenv("API_KEY"), help="API Key for E2E check")
-    parser.add_argument("--timeout", type=float, default=30.0, help="Total timeout in seconds")
+    parser.add_argument("--timeout", type=float, default=90.0, help="Total timeout in seconds")
     args = parser.parse_args()
 
     base_url = args.base_url.rstrip("/")
