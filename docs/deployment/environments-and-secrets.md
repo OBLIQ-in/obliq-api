@@ -32,7 +32,21 @@
 | `DATABASE_URL` | Yes | Pooled connection string from Neon: `postgresql+asyncpg://<user>:<password>@<ep-pooler>.<region>.aws.neon.tech/<dbname>?ssl=require` |
 | `REDIS_URL` | Yes | Managed TLS connection string from Upstash: `rediss://default:<password>@<endpoint>.upstash.io:6379` |
 | `SECRET_KEY` | Yes | Random 64-character hex or base64 string for JWT session and token signing. |
-| `INTERNAL_KEY` | Yes | Internal service key formatted as `obliq_internal_<hex>` used for internal testing and canary calls. |
+| `INTERNAL_KEY` | Yes, in each GitHub Environment | Full internal service key (`obliq_internal_<hex>`) used by smoke tests and canary calls. It must have an active hashed record in that environment's database; setting this GitHub secret does not create the database record. |
+
+### Provisioning the smoke-test key
+
+Create the key against the **staging database** and store the printed value directly as the `INTERNAL_KEY` secret in the GitHub `staging` Environment. Use the staging organisation ID. The script prints the full key once; do not commit it or put it in logs. Repeat separately for production using the production database and GitHub `production` Environment.
+
+```powershell
+$env:DATABASE_URL = "<staging database URL>"
+$env:SECRET_KEY = "<staging secret key>"
+$env:REDIS_URL = "<staging Redis URL>"
+$env:PYTHONPATH = "src"
+python -m scripts.create_internal_key --org-id <staging-organisation-uuid> --name "staging-smoke"
+```
+
+The smoke test's `401 Invalid or revoked API key` means the supplied key is not present as an active key in the database reached by the target Space, or its hash does not match. Confirm the GitHub Environment secret and Space `DATABASE_URL` refer to the same environment and that the key was generated for that database. Rotate any key that was committed to source control.
 
 ---
 

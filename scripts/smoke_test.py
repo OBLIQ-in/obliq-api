@@ -91,6 +91,11 @@ def main() -> int:
                 submit_resp = client.post("/v1/jobs", headers=headers, files=files)
                 if submit_resp.status_code != 202:
                     log(f"FAILED: Submit job returned status {submit_resp.status_code}: {submit_resp.text}")
+                    if submit_resp.status_code == 401:
+                        log(
+                            "Check that INTERNAL_KEY is the full active key registered in the target "
+                            "environment's database. GitHub's secret alone does not register the key."
+                        )
                     return 1
 
                 job_id = submit_resp.json().get("id")
