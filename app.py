@@ -25,11 +25,12 @@ try:
     import spaces
 
     @spaces.GPU
-    def _zerogpu_runner(task_name: str = "ocr") -> str:
+    def _zerogpu_runner(text: str = "") -> str:
         """Registered GPU function required by Hugging Face ZeroGPU supervisor."""
-        return task_name
+        return text
 except ImportError:
-    pass
+    def _zerogpu_runner(text: str = "") -> str:
+        return text
 
 # Initialize core FastAPI backend
 fastapi_app = create_app()
@@ -56,6 +57,11 @@ with gr.Blocks(title="Obliq OCR API") as demo:
         - `GET /v1/dashboard/summary` — Developer usage & credit balance
         """
     )
+
+    # Wire the @spaces.GPU function to a hidden event listener for ZeroGPU startup detection
+    _dummy_btn = gr.Button("ZeroGPU Check", visible=False)
+    _dummy_out = gr.Textbox(visible=False)
+    _dummy_btn.click(fn=_zerogpu_runner, inputs=[], outputs=_dummy_out)
 
 # Mount Gradio onto the root of FastAPI
 # All custom FastAPI routes (/health, /ready, /v1/*, /docs) take precedence,
