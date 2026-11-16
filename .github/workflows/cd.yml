@@ -50,12 +50,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Run Database Migrations (Staging)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          python -m pip install --upgrade pip
-          pip install .
+          pip install alembic asyncpg "sqlalchemy[asyncio]" pydantic pydantic-settings
           alembic upgrade head
         continue-on-error: false
 
@@ -115,12 +119,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Run Database Migrations (Production)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          python -m pip install --upgrade pip
-          pip install .
+          pip install alembic asyncpg "sqlalchemy[asyncio]" pydantic pydantic-settings
           alembic upgrade head
         continue-on-error: false
 
