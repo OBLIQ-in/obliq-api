@@ -16,10 +16,12 @@ if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
 import gradio as gr
+import spaces
 import uvicorn
 
 from obliq_api.main import create_app
 
+@spaces.GPU
 def _status_runner(text: str = "Ready") -> str:
     """Return operational status for browser visitors."""
     return f"Obliq API operational: {text}"
