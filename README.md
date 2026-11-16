@@ -1,3 +1,15 @@
+---
+title: Obliq API
+emoji: 🚀
+colorFrom: indigo
+colorTo: blue
+sdk: gradio
+sdk_version: 4.44.1
+python_version: "3.11"
+app_file: app.py
+pinned: false
+---
+
 # obliq-api
 
 HTTP OCR service wrapping `obliq-ocr` (PyMuPDF + RapidOCR/ONNX), built for FastAPI Cloud.

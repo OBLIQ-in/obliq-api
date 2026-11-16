@@ -72,10 +72,10 @@ def main() -> int:
                 log(f"FAILED: /ready returned status {resp.status_code}: {resp.text}")
                 return 1
             ready = resp.json()
-            if ready.get("status") != "ready":
+            if ready.get("status") not in ("ok", "ready"):
                 log(f"FAILED: /ready indicates dependencies unready: {ready}")
                 return 1
-            log("PASSED: /ready dependencies are reachable (Redis & OCR)")
+            log("PASSED: /ready dependencies are reachable (Database, Redis & OCR)")
         except Exception as exc:
             log(f"FAILED: Could not reach /ready: {exc}")
             return 1
@@ -91,6 +91,11 @@ def main() -> int:
                 submit_resp = client.post("/v1/jobs", headers=headers, files=files)
                 if submit_resp.status_code != 202:
                     log(f"FAILED: Submit job returned status {submit_resp.status_code}: {submit_resp.text}")
+                    if submit_resp.status_code == 401:
+                        log(
+                            "Check that INTERNAL_KEY is the full active key registered in the target "
+                            "environment's database. GitHub's secret alone does not register the key."
+                        )
                     return 1
 
                 job_id = submit_resp.json().get("id")

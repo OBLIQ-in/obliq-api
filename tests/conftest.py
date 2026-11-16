@@ -1,4 +1,11 @@
+import os
 import pytest
+
+# Ensure dummy environment variables are present before obliq_api modules are imported
+os.environ.setdefault("SECRET_KEY", "test_secret_key_minimum_32_characters_long_for_pydantic")
+os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://user:pass@localhost:5432/testdb")
+os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+
 from httpx import ASGITransport, AsyncClient
 from unittest.mock import AsyncMock, MagicMock
 
@@ -101,6 +108,14 @@ def mock_dependencies_globally(monkeypatch):
     rate_limiter = MockRateLimiter()
     ocr_engine = MockOCREngine()
 
+    dependencies._job_store = job_store
+    dependencies._rate_limiter = rate_limiter
+    dependencies._ocr_engine = ocr_engine
+
+    import obliq_api.api.v1.jobs as jobs_mod
+    monkeypatch.setattr(jobs_mod, "get_job_store", lambda: job_store)
+    monkeypatch.setattr(jobs_mod, "get_rate_limiter", lambda: rate_limiter)
+    monkeypatch.setattr(jobs_mod, "get_ocr_engine", lambda: ocr_engine)
     monkeypatch.setattr(dependencies, "get_job_store", lambda: job_store)
     monkeypatch.setattr(dependencies, "get_rate_limiter", lambda: rate_limiter)
     monkeypatch.setattr(dependencies, "get_ocr_engine", lambda: ocr_engine)
@@ -126,10 +141,15 @@ def app(mock_dependencies_globally):
         mock_session.execute.return_value = mock_result
         yield mock_session
 
+    import obliq_api.api.v1.jobs as jobs_mod
+
     app_instance.dependency_overrides[get_db] = override_get_db
     app_instance.dependency_overrides[dependencies.get_job_store] = lambda: job_store
     app_instance.dependency_overrides[dependencies.get_rate_limiter] = lambda: rate_limiter
     app_instance.dependency_overrides[dependencies.get_ocr_engine] = lambda: ocr_engine
+    app_instance.dependency_overrides[jobs_mod.get_job_store] = lambda: job_store
+    app_instance.dependency_overrides[jobs_mod.get_rate_limiter] = lambda: rate_limiter
+    app_instance.dependency_overrides[jobs_mod.get_ocr_engine] = lambda: ocr_engine
 
     return app_instance
 

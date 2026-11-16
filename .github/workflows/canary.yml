@@ -34,11 +34,23 @@ jobs:
       - name: Run Canary Check
         env:
           BASE_URL: ${{ secrets.API_BASE_URL }}
+          HF_SPACE_STAGING: ${{ secrets.HF_SPACE_STAGING }}
+          HF_SPACE_PRODUCTION: ${{ secrets.HF_SPACE_PRODUCTION }}
           INTERNAL_KEY: ${{ secrets.INTERNAL_KEY }}
           ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
         run: |
+          TARGET_URL="${BASE_URL}"
+          if [ -z "$TARGET_URL" ]; then
+            if [ "${{ matrix.environment }}" = "staging" ]; then
+              CLEAN_NAME=$(echo "$HF_SPACE_STAGING" | tr '/' '-' | tr '_' '-')
+            else
+              CLEAN_NAME=$(echo "$HF_SPACE_PRODUCTION" | tr '/' '-' | tr '_' '-')
+            fi
+            TARGET_URL="https://${CLEAN_NAME}.hf.space"
+          fi
+          echo "Target Canary URL: $TARGET_URL"
           python scripts/canary.py \
-            --base-url "$BASE_URL" \
+            --base-url "$TARGET_URL" \
             --api-key "$INTERNAL_KEY" \
             --fixture tests/fixtures/golden_fixture.pdf \
             --truth tests/fixtures/golden_fixture_truth.txt \
