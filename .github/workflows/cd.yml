@@ -31,6 +31,10 @@ jobs:
           pip install .[dev]
 
       - name: Execute Pytest Suite
+        env:
+          SECRET_KEY: "test_secret_key_minimum_32_characters_long_for_pydantic"
+          DATABASE_URL: "postgresql+asyncpg://user:pass@localhost:5432/testdb"
+          REDIS_URL: "redis://localhost:6379/0"
         run: |
           pytest tests -v
 

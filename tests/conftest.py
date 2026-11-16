@@ -1,4 +1,11 @@
+import os
 import pytest
+
+# Ensure dummy environment variables are present before obliq_api modules are imported
+os.environ.setdefault("SECRET_KEY", "test_secret_key_minimum_32_characters_long_for_pydantic")
+os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://user:pass@localhost:5432/testdb")
+os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+
 from httpx import ASGITransport, AsyncClient
 from unittest.mock import AsyncMock, MagicMock
 
