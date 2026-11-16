@@ -20,25 +20,16 @@ import uvicorn
 
 from obliq_api.main import create_app
 
-# ZeroGPU compatibility: satisfy Hugging Face ZeroGPU startup validator
-try:
-    import spaces
-
-    @spaces.GPU
-    def _zerogpu_runner(text: str = "Ready") -> str:
-        """Registered GPU function required by Hugging Face ZeroGPU supervisor."""
-        return f"Obliq API operational: {text}"
-except ImportError:
-    def _zerogpu_runner(text: str = "Ready") -> str:
-        return f"Obliq API operational: {text}"
+def _status_runner(text: str = "Ready") -> str:
+    """Return operational status for browser visitors."""
+    return f"Obliq API operational: {text}"
 
 # Initialize core FastAPI backend
 fastapi_app = create_app()
 
 # Create status overview dashboard for browser visitors using gr.Interface
-# This explicitly satisfies the ZeroGPU startup validator while serving our FastAPI backend.
 demo = gr.Interface(
-    fn=_zerogpu_runner,
+    fn=_status_runner,
     inputs=gr.Textbox(label="Status Check", value="Ready"),
     outputs=gr.Textbox(label="System Status"),
     title="🚀 Obliq OCR API Service",
@@ -52,9 +43,8 @@ demo = gr.Interface(
 )
 
 # Mount Gradio onto the root of FastAPI
-app = gr.mount_gradio_app(fastapi_app, demo, path="/")
 # All custom FastAPI routes (/health, /ready, /v1/*, /docs) take precedence,
-# while browser visitors hitting the root URL see the interactive status dashboard!
+# while browser visitors hitting the root URL see the interactive status dashboard.
 app = gr.mount_gradio_app(fastapi_app, demo, path="/")
 
 if __name__ == "__main__":
