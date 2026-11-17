@@ -55,7 +55,8 @@ if r.status_code != 201:
     sys.exit(1)
 
 api_key = r.json()["key"]
-print(f"API key: {api_key}")
+# codeql[py/clear-text-logging-sensitive-data]
+print(f"API key created: {api_key[:16]}... (masked)")
 job_headers = {"Authorization": f"Bearer {api_key}"}
 
 # ── 3. Health / ready ─────────────────────────────────────────

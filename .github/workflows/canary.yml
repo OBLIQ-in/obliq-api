@@ -46,7 +46,14 @@ jobs:
             else
               CLEAN_NAME=$(echo "$HF_SPACE_PRODUCTION" | tr '/' '-' | tr '_' '-')
             fi
-            TARGET_URL="https://${CLEAN_NAME}.hf.space"
+            if [ -n "$CLEAN_NAME" ]; then
+              TARGET_URL="https://${CLEAN_NAME}.hf.space"
+            fi
+          fi
+
+          if [ -z "$TARGET_URL" ]; then
+            echo "[CANARY] WARNING: Neither API_BASE_URL nor HF_SPACE_${{ matrix.environment }} secret is configured. Skipping canary check."
+            exit 0
           fi
           echo "Target Canary URL: $TARGET_URL"
           python scripts/canary.py \
@@ -55,4 +62,5 @@ jobs:
             --fixture tests/fixtures/golden_fixture.pdf \
             --truth tests/fixtures/golden_fixture_truth.txt \
             --max-latency 4.0 \
+            --max-e2e-latency 30.0 \
             --max-cer 0.03

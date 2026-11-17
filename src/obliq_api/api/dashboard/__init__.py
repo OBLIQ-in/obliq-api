@@ -72,6 +72,18 @@ class DailyUsageResponse(BaseModel):
     days: list[DailyUsage]
 
 
+class HourlyUsage(BaseModel):
+    hour: str  # ISO hour string, e.g. "2026-11-17 12:00"
+    jobs: int
+    pages_processed: int
+    failed_jobs: int
+    avg_duration_ms: int
+
+
+class HourlyUsageResponse(BaseModel):
+    hours: list[HourlyUsage]
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -137,6 +149,7 @@ async def get_dashboard_summary(
 @router.get("/usage/daily", response_model=DailyUsageResponse)
 async def get_daily_usage(
     days: int = Query(30, ge=1, le=90),
+    key_id: UUID | None = Query(None),
     ctx: AuthContext = Depends(require_dashboard_user),
     db: AsyncSession = Depends(get_db),
 ) -> DailyUsageResponse:
@@ -144,24 +157,23 @@ async def get_daily_usage(
     org_id: UUID = ctx.organisation_id
     since = datetime.now(UTC) - timedelta(days=days)
 
-    # Truncate created_at to day for grouping
     day_col = func.date_trunc("day", UsageRecord.created_at).label("day")
 
-    rows = await db.execute(
-        select(
-            day_col,
-            func.count(UsageRecord.id).label("jobs"),
-            func.coalesce(func.sum(UsageRecord.pages_processed), 0).label("pages_processed"),
-            func.coalesce(func.sum(UsageRecord.credits_charged), 0).label("credits_charged"),
-            func.count(UsageRecord.id).filter(UsageRecord.status == "failed").label("failed_jobs"),
-        )
-        .where(
-            UsageRecord.organisation_id == org_id,
-            UsageRecord.created_at >= since,
-        )
-        .group_by(day_col)
-        .order_by(day_col)
+    query = select(
+        day_col,
+        func.count(UsageRecord.id).label("jobs"),
+        func.coalesce(func.sum(UsageRecord.pages_processed), 0).label("pages_processed"),
+        func.coalesce(func.sum(UsageRecord.credits_charged), 0).label("credits_charged"),
+        func.count(UsageRecord.id).filter(UsageRecord.status == "failed").label("failed_jobs"),
+    ).where(
+        UsageRecord.organisation_id == org_id,
+        UsageRecord.created_at >= since,
     )
+    if key_id:
+        query = query.where(UsageRecord.api_key_id == key_id)
+
+    query = query.group_by(day_col).order_by(day_col)
+    rows = await db.execute(query)
 
     result_days = [
         DailyUsage(
@@ -175,3 +187,46 @@ async def get_daily_usage(
     ]
 
     return DailyUsageResponse(days=result_days)
+
+
+@router.get("/usage/hourly", response_model=HourlyUsageResponse)
+async def get_hourly_usage(
+    hours: int = Query(24, ge=1, le=72),
+    key_id: UUID | None = Query(None),
+    ctx: AuthContext = Depends(require_dashboard_user),
+    db: AsyncSession = Depends(get_db),
+) -> HourlyUsageResponse:
+    """Return per-hour aggregated usage for recent operational monitoring."""
+    org_id: UUID = ctx.organisation_id
+    since = datetime.now(UTC) - timedelta(hours=hours)
+
+    hour_col = func.date_trunc("hour", UsageRecord.created_at).label("hour")
+
+    query = select(
+        hour_col,
+        func.count(UsageRecord.id).label("jobs"),
+        func.coalesce(func.sum(UsageRecord.pages_processed), 0).label("pages_processed"),
+        func.count(UsageRecord.id).filter(UsageRecord.status == "failed").label("failed_jobs"),
+        func.coalesce(func.avg(UsageRecord.duration_ms), 0).label("avg_duration_ms"),
+    ).where(
+        UsageRecord.organisation_id == org_id,
+        UsageRecord.created_at >= since,
+    )
+    if key_id:
+        query = query.where(UsageRecord.api_key_id == key_id)
+
+    query = query.group_by(hour_col).order_by(hour_col)
+    rows = await db.execute(query)
+
+    result_hours = [
+        HourlyUsage(
+            hour=row.hour.strftime("%Y-%m-%d %H:00"),
+            jobs=row.jobs,
+            pages_processed=int(row.pages_processed),
+            failed_jobs=row.failed_jobs,
+            avg_duration_ms=int(row.avg_duration_ms),
+        )
+        for row in rows
+    ]
+
+    return HourlyUsageResponse(hours=result_hours)

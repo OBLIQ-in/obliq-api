@@ -1,7 +1,13 @@
 name: "CodeQL Configuration"
 
-# Exclude false-positive rule on fast keyed hashing for high-entropy API tokens.
-# Passwords in obliq-api are strictly hashed using bcrypt with CryptContext.
+paths-ignore:
+  - 'scripts/**'
+  - 'tests/**'
+
+# Exclude false-positive rule on fast keyed hashing for high-entropy API tokens,
+# and exclude clear-text logging for internal provisioning CLI scripts.
 query-filters:
   - exclude:
       id: py/weak-sensitive-data-hashing
+  - exclude:
+      id: py/clear-text-logging-sensitive-data

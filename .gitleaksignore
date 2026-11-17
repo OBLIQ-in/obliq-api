@@ -3,3 +3,6 @@
 
 # Historic commit from initial prototype (revoked local development key, replaced with CLI arg)
 aff34396170ddac267d817493f11eecfb4cda3d6:scripts/poll_job.py:generic-api-key:5
+
+# Unit test fixture prefix from commit b805562
+b8055624c6c5772361f16b358d9803f7c22bb97f:tests/unit/test_keys_management_and_ui.py:generic-api-key:30

@@ -9,6 +9,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from obliq_api.api.dashboard import router as dashboard_router
 from obliq_api.api.health import router as health_router
+from obliq_api.api.ui import router as ui_router
 from obliq_api.api.v1.auth import router as auth_router
 from obliq_api.api.v1.jobs import router as jobs_router
 from obliq_api.api.v1.keys import router as keys_router
@@ -136,6 +137,7 @@ def create_app() -> FastAPI:
 
     # ── Routers ───────────────────────────────────────────────────────────
     app.include_router(health_router)
+    app.include_router(ui_router)
     app.include_router(auth_router, prefix=settings.api_v1_prefix)
     app.include_router(jobs_router, prefix=settings.api_v1_prefix)
     app.include_router(keys_router, prefix=settings.api_v1_prefix)

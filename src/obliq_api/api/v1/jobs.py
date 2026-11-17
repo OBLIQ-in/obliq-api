@@ -11,7 +11,7 @@ from obliq_api.dependencies import (
     get_ocr_engine,
     get_rate_limiter,
     get_request_id,
-    require_api_key,
+    require_scope,
 )
 from obliq_api.protocols import JobStore, OCREngine, RateLimiter
 from obliq_api.schemas.common import JobStatusResponse, OCRResult
@@ -25,7 +25,7 @@ async def submit_job(
     request: Request,
     file: UploadFile = File(...),
     idempotency_key: str | None = Header(None, alias="Idempotency-Key"),
-    ctx: AuthContext = Depends(require_api_key),
+    ctx: AuthContext = Depends(require_scope("ocr:write")),
     db: AsyncSession = Depends(get_db),
     job_store: JobStore = Depends(get_job_store),
     ocr: OCREngine = Depends(get_ocr_engine),
@@ -48,7 +48,7 @@ async def submit_job(
 @router.get("/{job_id}", response_model=JobStatusResponse)
 async def get_job_status(
     job_id: UUID,
-    ctx: AuthContext = Depends(require_api_key),
+    ctx: AuthContext = Depends(require_scope("ocr:read")),
     db: AsyncSession = Depends(get_db),
     job_store: JobStore = Depends(get_job_store),
     ocr: OCREngine = Depends(get_ocr_engine),
@@ -69,7 +69,7 @@ async def get_job_status(
 @router.get("/{job_id}/result", response_model=OCRResult)
 async def get_job_result(
     job_id: UUID,
-    ctx: AuthContext = Depends(require_api_key),
+    ctx: AuthContext = Depends(require_scope("ocr:read")),
     db: AsyncSession = Depends(get_db),
     job_store: JobStore = Depends(get_job_store),
     ocr: OCREngine = Depends(get_ocr_engine),
