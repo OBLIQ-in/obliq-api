@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Usage & Analytics{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-white">Usage & Observability</h1>
+      <p class="text-slate-400 text-sm mt-1">Live telemetry, request volume, error distributions, and latency percentiles.</p>
+    </div>
+    <div class="flex items-center space-x-3">
+      <select id="select-range" onchange="loadUsage()" class="px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500">
+        <option value="7">Last 7 Days</option>
+        <option value="30" selected>Last 30 Days</option>
+        <option value="90">Last 90 Days</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPI Overview -->
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 my-6">
+    <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total OCR Jobs (30d)</div>
+      <div id="kpi-jobs" class="text-2xl font-bold text-white mt-1">--</div>
+    </div>
+    <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Pages Processed</div>
+      <div id="kpi-pages" class="text-2xl font-bold text-indigo-400 mt-1">--</div>
+    </div>
+    <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Credits Charged</div>
+      <div id="kpi-credits" class="text-2xl font-bold text-slate-300 mt-1">--</div>
+    </div>
+    <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+      <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Failed Jobs</div>
+      <div id="kpi-failed" class="text-2xl font-bold text-rose-400 mt-1">--</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 my-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
+      <h3 class="text-sm font-semibold text-white mb-4">Daily Request Volume & Pages</h3>
+      <div class="h-64 relative">
+        <canvas id="chart-requests"></canvas>
+      </div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
+      <h3 class="text-sm font-semibold text-white mb-4">Hourly Traffic Trend (Recent 24h)</h3>
+      <div class="h-64 relative">
+        <canvas id="chart-hourly"></canvas>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let reqChart = null;
+  let hourlyChart = null;
+
+  async function loadUsage() {
+    const days = document.getElementById('select-range').value;
+    try {
+      // 1. Summary
+      const sumResp = await apiFetch('/v1/dashboard/summary');
+      const sum = await sumResp.json();
+      document.getElementById('kpi-jobs').innerText = sum.usage_last_30_days.jobs.toLocaleString();
+      document.getElementById('kpi-pages').innerText = sum.usage_last_30_days.pages_processed.toLocaleString();
+      document.getElementById('kpi-credits').innerText = sum.usage_last_30_days.credits_charged.toLocaleString();
+      document.getElementById('kpi-failed').innerText = sum.usage_last_30_days.failed_jobs.toLocaleString();
+
+      // 2. Daily Time-Series
+      const dailyResp = await apiFetch(`/v1/dashboard/usage/daily?days=${days}`);
+      const daily = await dailyResp.json();
+      renderDailyChart(daily.days || []);
+
+      // 3. Hourly Time-Series
+      const hourlyResp = await apiFetch('/v1/dashboard/usage/hourly?hours=24');
+      const hourly = await hourlyResp.json();
+      renderHourlyChart(hourly.hours || []);
+    } catch (err) {
+      console.error('Failed to load telemetry:', err);
+    }
+  }
+
+  function renderDailyChart(days) {
+    const ctx = document.getElementById('chart-requests').getContext('2d');
+    if (reqChart) reqChart.destroy();
+
+    const labels = days.map(d => d.date);
+    const jobs = days.map(d => d.jobs);
+    const pages = days.map(d => d.pages_processed);
+
+    reqChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Jobs Submitted',
+            data: jobs,
+            backgroundColor: 'rgba(99, 102, 241, 0.7)',
+            borderColor: '#6366f1',
+            borderRadius: 4
+          },
+          {
+            label: 'Pages Extracted',
+            data: pages,
+            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+            borderColor: '#10b981',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(51, 65, 85, 0.2)' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(51, 65, 85, 0.2)' } }
+        }
+      }
+    });
+  }
+
+  function renderHourlyChart(hours) {
+    const ctx = document.getElementById('chart-hourly').getContext('2d');
+    if (hourlyChart) hourlyChart.destroy();
+
+    const labels = hours.map(h => h.hour.slice(-5));
+    const jobs = hours.map(h => h.jobs);
+
+    hourlyChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Requests / Hour',
+          data: jobs,
+          fill: true,
+          backgroundColor: 'rgba(99, 102, 241, 0.15)',
+          borderColor: '#6366f1',
+          tension: 0.3,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8' } } },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(51, 65, 85, 0.2)' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(51, 65, 85, 0.2)' } }
+        }
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', loadUsage);
+</script>
+{% endblock %}

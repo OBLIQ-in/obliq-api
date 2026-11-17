@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Developer Portal{% endblock %} - Obliq Developer Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+<nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <div class="flex items-center space-x-8">
+        <a href="/dashboard/keys" class="flex items-center space-x-3">
+          <div class="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">O</div>
+          <span class="font-semibold text-lg tracking-tight text-white">Obliq <span class="text-xs px-2 py-0.5 rounded bg-indigo-900/50 text-indigo-400 border border-indigo-700/50 ml-1">Portal</span></span>
+        </a>
+        <div class="hidden md:flex space-x-1">
+          <a href="/dashboard/keys" id="nav-keys" class="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">API Keys</a>
+          <a href="/dashboard/usage" id="nav-usage" class="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">Usage & Analytics</a>
+          <a href="/dashboard/docs" id="nav-docs" class="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">Client Docs & SDK</a>
+          <a href="/docs" target="_blank" class="px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-indigo-400 transition flex items-center">OpenAPI <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button onclick="promptAuthToken()" id="auth-btn" class="text-xs px-3 py-1.5 rounded-md border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center">
+          <span class="h-2 w-2 rounded-full bg-emerald-500 mr-2" id="auth-indicator"></span>
+          <span id="auth-label">API Key / Token</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div id="offline-banner" class="hidden bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-sm text-amber-400 flex items-center justify-center">
+  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+  <span>You are offline. Key creation, rotation, and live metrics require an active network connection.</span>
+</div>
+
+{% block content %}{% endblock %}
+
+<script>
+  // Auth Token Management
+  function getAuthToken() {
+    return localStorage.getItem('obliq_auth_token') || '';
+  }
+
+  function setAuthToken(token) {
+    if (token) {
+      localStorage.setItem('obliq_auth_token', token.trim());
+    } else {
+      localStorage.removeItem('obliq_auth_token');
+    }
+    updateAuthUI();
+  }
+
+  function promptAuthToken() {
+    const current = getAuthToken();
+    const token = prompt('Enter Bearer Token (Dashboard JWT or Admin API Key):', current);
+    if (token !== null) {
+      setAuthToken(token);
+      location.reload();
+    }
+  }
+
+  function updateAuthUI() {
+    const token = getAuthToken();
+    const indicator = document.getElementById('auth-indicator');
+    const label = document.getElementById('auth-label');
+    if (indicator && label) {
+      if (token) {
+        indicator.className = 'h-2 w-2 rounded-full bg-emerald-500 mr-2';
+        label.innerText = 'Authenticated (' + token.slice(0, 10) + '...)';
+      } else {
+        indicator.className = 'h-2 w-2 rounded-full bg-amber-500 mr-2';
+        label.innerText = 'Set Auth Token';
+      }
+    }
+  }
+
+  // Offline detection
+  function checkOnlineStatus() {
+    const banner = document.getElementById('offline-banner');
+    if (banner) {
+      if (navigator.onLine) {
+        banner.classList.add('hidden');
+      } else {
+        banner.classList.remove('hidden');
+      }
+    }
+  }
+
+  window.addEventListener('online', checkOnlineStatus);
+  window.addEventListener('offline', checkOnlineStatus);
+  document.addEventListener('DOMContentLoaded', () => {
+    checkOnlineStatus();
+    updateAuthUI();
+  });
+
+  // Generic API Caller
+  async function apiFetch(endpoint, options = {}) {
+    const token = getAuthToken();
+    const headers = {
+      ...(options.headers || {})
+    };
+    if (token && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const resp = await fetch(endpoint, { ...options, headers });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || err.detail || `Request failed (${resp.status})`);
+    }
+    return resp;
+  }
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>
