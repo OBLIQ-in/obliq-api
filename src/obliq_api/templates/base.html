@@ -90,8 +90,8 @@ tbody tr:hover{background:#1a1a1a}
 .scroll{overflow-x:auto}
 /* forms + modal */
 label.l{display:block;font-size:12px;font-weight:500;margin-bottom:6px}
-input[type=text],select{width:100%;padding:9px 12px;background:#0e0e0e;border:1px solid var(--line2);border-radius:6px;color:var(--text);font:inherit;font-size:13px}
-input[type=text]:focus,select:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+input[type=text],input[type=password],input[type=email],select{width:100%;padding:9px 12px;background:#0e0e0e;border:1px solid var(--line2);border-radius:6px;color:var(--text);font:inherit;font-size:13px}
+input[type=text]:focus,input[type=password]:focus,input[type=email]:focus,select:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
 input[type=checkbox]{accent-color:var(--acc);margin-top:3px}
 .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}
 .dlg{background:var(--panel);border:1px solid var(--line2);border-radius:12px;width:100%;max-width:440px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
@@ -125,14 +125,98 @@ footer a:hover{color:#fff}
       </div>
     </div>
     <div class="nav-r">
-      <button onclick="promptAuthToken()" id="auth-btn" class="btn">
-        <span class="dot" id="auth-indicator"></span><span id="auth-label">API Key / Token</span>
+      <button onclick="openAuthModal()" id="auth-btn" class="btn">
+        <span class="dot off" id="auth-indicator"></span><span id="auth-label">Sign In / Connect</span>
       </button>
     </div>
   </div>
 </nav>
 
 <div id="offline-banner" class="hidden">You are offline. Key creation, rotation, and live metrics need an active network connection.</div>
+
+<!-- Authentication Modal -->
+<div id="modal-auth" class="modal hidden">
+  <div class="dlg" style="max-width:460px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <h3 id="auth-modal-title">Developer Portal Access</h3>
+        <p class="d" id="auth-modal-sub">Authenticate via your account, Bearer token, or API key.</p>
+      </div>
+      <button onclick="closeAuthModal()" style="background:none;border:0;color:var(--dim);font-size:20px;line-height:1;padding:2px 6px;cursor:pointer" aria-label="Close">&times;</button>
+    </div>
+
+    <!-- Active Session Box -->
+    <div id="auth-active-box" class="code hidden" style="margin-top:16px;padding:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--acc);font-weight:600">● ACTIVE SESSION</span>
+        <button onclick="disconnectAuth()" class="btn btn-sm btn-danger">Sign Out</button>
+      </div>
+      <div id="auth-active-identity" class="mono" style="font-size:12px;color:#fff;margin-top:6px;word-break:break-all"></div>
+    </div>
+
+    <!-- Auth Tabs -->
+    <div class="seg" style="width:100%;display:flex;margin-top:16px">
+      <button onclick="switchAuthTab('signin')" id="tab-auth-btn-signin" class="on" style="flex:1">Sign In</button>
+      <button onclick="switchAuthTab('register')" id="tab-auth-btn-register" style="flex:1">Register</button>
+      <button onclick="switchAuthTab('token')" id="tab-auth-btn-token" style="flex:1">API Key / Token</button>
+    </div>
+
+    <!-- Tab 1: Sign In -->
+    <form id="form-auth-signin" onsubmit="handleAuthLogin(event)" style="margin-top:16px;display:grid;gap:12px">
+      <div>
+        <label class="l" for="auth-signin-email">Email</label>
+        <input type="email" id="auth-signin-email" placeholder="developer@example.com" required autocomplete="username">
+      </div>
+      <div>
+        <label class="l" for="auth-signin-password">Password</label>
+        <input type="password" id="auth-signin-password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" id="btn-auth-signin" class="btn btn-primary" style="justify-content:center;margin-top:4px">Sign In to Workspace</button>
+    </form>
+
+    <!-- Tab 2: Register -->
+    <form id="form-auth-register" onsubmit="handleAuthRegister(event)" class="hidden" style="margin-top:16px;display:grid;gap:12px">
+      <div>
+        <label class="l" for="auth-reg-name">Full Name</label>
+        <input type="text" id="auth-reg-name" placeholder="Alex Morgan" required>
+      </div>
+      <div>
+        <label class="l" for="auth-reg-org">Organisation Name</label>
+        <input type="text" id="auth-reg-org" placeholder="Acme Technologies" required>
+      </div>
+      <div>
+        <label class="l" for="auth-reg-email">Email</label>
+        <input type="email" id="auth-reg-email" placeholder="alex@acme.com" required autocomplete="email">
+      </div>
+      <div>
+        <label class="l" for="auth-reg-password">Password</label>
+        <input type="password" id="auth-reg-password" placeholder="Min. 8 characters" required minlength="8" autocomplete="new-password">
+      </div>
+      <button type="submit" id="btn-auth-register" class="btn btn-primary" style="justify-content:center;margin-top:4px">Create Workspace &amp; Sign In</button>
+    </form>
+
+    <!-- Tab 3: Token / API Key -->
+    <div id="form-auth-token" class="hidden" style="margin-top:16px;display:grid;gap:12px">
+      <div>
+        <label class="l" for="auth-token-input">Manual API Key or Bearer Token</label>
+        <input type="text" id="auth-token-input" class="mono" placeholder="obliq_live_... or eyJhbGci..." style="font-size:12px">
+        <p style="font-size:11px;color:var(--dim);margin-top:6px">Paste an existing Dashboard JWT, Internal key, or Live API key.</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button type="button" onclick="testTokenConnection()" id="btn-auth-test" class="btn" style="flex:1;justify-content:center">Test Connection</button>
+        <button type="button" onclick="saveManualToken()" id="btn-auth-save" class="btn btn-primary" style="flex:1;justify-content:center">Save &amp; Connect</button>
+      </div>
+    </div>
+
+    <!-- Status message banner -->
+    <div id="auth-modal-status" class="hidden" style="margin-top:14px;padding:10px 12px;border-radius:6px;font-size:12px"></div>
+
+    <div class="foot" style="justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:var(--dim)">OBLIQ-in Secure Auth</span>
+      <button type="button" onclick="closeAuthModal()" class="btn btn-sm">Close</button>
+    </div>
+  </div>
+</div>
 
 {% block content %}{% endblock %}
 
@@ -156,20 +240,192 @@ footer a:hover{color:#fff}
   function getAuthToken(){ return localStorage.getItem('obliq_auth_token') || ''; }
   function setAuthToken(token){
     if(token) localStorage.setItem('obliq_auth_token', token.trim());
-    else localStorage.removeItem('obliq_auth_token');
+    else {
+      localStorage.removeItem('obliq_auth_token');
+      sessionStorage.removeItem('obliq_user_label');
+    }
     updateAuthUI();
   }
-  function promptAuthToken(){
-    const token = prompt('Enter Bearer Token (Dashboard JWT or Admin API Key):', getAuthToken());
-    if(token !== null){ setAuthToken(token); location.reload(); }
+
+  function openAuthModal(){
+    const token = getAuthToken();
+    const activeBox = document.getElementById('auth-active-box');
+    const activeId = document.getElementById('auth-active-identity');
+    const tokenInput = document.getElementById('auth-token-input');
+    clearAuthStatus();
+
+    if(token){
+      if(activeBox) activeBox.classList.remove('hidden');
+      if(activeId) activeId.innerText = 'Active: ' + token.slice(0, 14) + '...' + token.slice(-6);
+      if(tokenInput) tokenInput.value = token;
+    } else {
+      if(activeBox) activeBox.classList.add('hidden');
+      if(tokenInput) tokenInput.value = '';
+    }
+    document.getElementById('modal-auth').classList.remove('hidden');
   }
-  function updateAuthUI(){
-    const token=getAuthToken(), i=document.getElementById('auth-indicator'), l=document.getElementById('auth-label');
-    if(i && l){
-      i.className = token ? 'dot' : 'dot off';
-      l.innerText = token ? 'Authenticated (' + token.slice(0,10) + '...)' : 'Set Auth Token';
+
+  function closeAuthModal(){
+    document.getElementById('modal-auth').classList.add('hidden');
+  }
+
+  window.promptAuthToken = openAuthModal;
+
+  function switchAuthTab(tab){
+    clearAuthStatus();
+    ['signin', 'register', 'token'].forEach(t => {
+      const form = document.getElementById('form-auth-' + t);
+      const btn = document.getElementById('tab-auth-btn-' + t);
+      if(form) form.classList.toggle('hidden', t !== tab);
+      if(btn) btn.classList.toggle('on', t === tab);
+    });
+  }
+
+  function showAuthStatus(msg, isSuccess = false){
+    const el = document.getElementById('auth-modal-status');
+    if(!el) return;
+    el.style.border = isSuccess ? '1px solid rgba(62,207,142,.35)' : '1px solid rgba(240,97,109,.35)';
+    el.style.background = isSuccess ? 'rgba(62,207,142,.08)' : 'rgba(240,97,109,.08)';
+    el.style.color = isSuccess ? 'var(--acc)' : 'var(--err)';
+    el.innerText = msg;
+    el.classList.remove('hidden');
+  }
+
+  function clearAuthStatus(){
+    const el = document.getElementById('auth-modal-status');
+    if(el){ el.innerText = ''; el.classList.add('hidden'); }
+  }
+
+  async function handleAuthLogin(e){
+    e.preventDefault();
+    clearAuthStatus();
+    const email = document.getElementById('auth-signin-email').value.trim();
+    const password = document.getElementById('auth-signin-password').value;
+    const btn = document.getElementById('btn-auth-signin');
+    const origText = btn.innerText;
+    btn.disabled = true; btn.innerText = 'Signing in...';
+
+    try {
+      const resp = await fetch('/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if(!resp.ok){
+        throw new Error(data.detail || data.error?.message || 'Login failed');
+      }
+      setAuthToken(data.access_token);
+      showAuthStatus('Signed in successfully! Refreshing portal...', true);
+      setTimeout(() => location.reload(), 500);
+    } catch(err) {
+      showAuthStatus(err.message, false);
+      btn.disabled = false; btn.innerText = origText;
     }
   }
+
+  async function handleAuthRegister(e){
+    e.preventDefault();
+    clearAuthStatus();
+    const full_name = document.getElementById('auth-reg-name').value.trim();
+    const organisation_name = document.getElementById('auth-reg-org').value.trim();
+    const email = document.getElementById('auth-reg-email').value.trim();
+    const password = document.getElementById('auth-reg-password').value;
+    const btn = document.getElementById('btn-auth-register');
+    const origText = btn.innerText;
+    btn.disabled = true; btn.innerText = 'Creating account...';
+
+    try {
+      const resp = await fetch('/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name, organisation_name, email, password })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if(!resp.ok){
+        throw new Error(data.detail || data.error?.message || 'Registration failed');
+      }
+      setAuthToken(data.access_token);
+      showAuthStatus('Account created! Welcome to OBLIQ-in. Refreshing...', true);
+      setTimeout(() => location.reload(), 500);
+    } catch(err) {
+      showAuthStatus(err.message, false);
+      btn.disabled = false; btn.innerText = origText;
+    }
+  }
+
+  async function testTokenConnection(){
+    const token = (document.getElementById('auth-token-input').value || '').trim();
+    if(!token){ showAuthStatus('Please enter a token or key to test.', false); return; }
+    const btn = document.getElementById('btn-auth-test');
+    const origText = btn.innerText;
+    btn.disabled = true; btn.innerText = 'Testing...';
+
+    try {
+      const resp = await fetch('/v1/dashboard/summary', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if(!resp.ok){
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.detail || err.error?.message || `Validation failed (${resp.status})`);
+      }
+      const data = await resp.json();
+      const orgName = data.organisation?.name || 'Workspace';
+      showAuthStatus(`✓ Connection verified! Authenticated as "${orgName}".`, true);
+    } catch(e) {
+      showAuthStatus(`Connection failed: ${e.message}`, false);
+    } finally {
+      btn.disabled = false; btn.innerText = origText;
+    }
+  }
+
+  function saveManualToken(){
+    const token = (document.getElementById('auth-token-input').value || '').trim();
+    if(!token){
+      disconnectAuth();
+      return;
+    }
+    setAuthToken(token);
+    showAuthStatus('Token saved! Refreshing...', true);
+    setTimeout(() => location.reload(), 400);
+  }
+
+  function disconnectAuth(){
+    setAuthToken('');
+    location.reload();
+  }
+
+  async function updateAuthUI(){
+    const token = getAuthToken();
+    const ind = document.getElementById('auth-indicator');
+    const lbl = document.getElementById('auth-label');
+    if(!ind || !lbl) return;
+
+    if(!token){
+      ind.className = 'dot off';
+      lbl.innerText = 'Sign In / Connect';
+      return;
+    }
+
+    ind.className = 'dot';
+    lbl.innerText = 'Connected (' + token.slice(0, 10) + '...)';
+
+    try {
+      const cached = sessionStorage.getItem('obliq_user_label');
+      if (cached) {
+        lbl.innerText = cached;
+      } else {
+        const resp = await fetch('/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (resp.ok) {
+          const user = await resp.json();
+          const display = user.email ? user.email.split('@')[0] : 'Connected';
+          sessionStorage.setItem('obliq_user_label', display);
+          lbl.innerText = display;
+        }
+      }
+    } catch(e) { /* fallback to masked token */ }
+  }
+
   function checkOnlineStatus(){
     const b=document.getElementById('offline-banner');
     if(b) b.classList.toggle('hidden', navigator.onLine);

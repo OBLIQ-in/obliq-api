@@ -94,7 +94,7 @@
       if(badge) badge.innerText=`${currentKeys.length} key${currentKeys.length===1?'':'s'}`;
       renderKeysTable();
     }catch(err){
-      tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--err)">${esc(err.message)}<br><button onclick="promptAuthToken()" class="btn btn-sm" style="margin-top:12px">Set or update auth token</button></td></tr>`;
+      tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--err)">${esc(err.message)}<br><button onclick="openAuthModal()" class="btn btn-sm btn-primary" style="margin-top:12px">Authenticate / Sign in</button></td></tr>`;
     }
   }
 
