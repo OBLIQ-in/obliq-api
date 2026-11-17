@@ -45,7 +45,9 @@ In the GitHub repository, the admin needs to set up **Environments** and **Secre
 1. **`staging`**:
    - No protection rules needed (auto-deploys upon merge to `main`).
 2. **`production`**:
-   - Check **Required reviewers** ➔ Add designated team members/admins who must approve production releases.
+   - Check **Required reviewers** ➔ Add designated reviewers (`@abhirajadhikary06`, `@Naman-iitm`).
+   - Configure **1 approval required** so that any single designated reviewer can approve the production deployment gate.
+   - Leave **Prevent self-review** unchecked (`false`) to allow authorized maintainers to self-approve when initiating releases.
 
 #### 2. Configure GitHub Secrets (`Settings ➔ Secrets and variables ➔ Actions`)
 

@@ -18,7 +18,7 @@
 | **Database (Neon)** | Dedicated branch: `staging` | Dedicated branch: `main` / `production` |
 | **Redis (Upstash)** | Staging database / prefix `obliq:staging:` | Production database / prefix `obliq:prod:` |
 | **Log Format** | Structured JSON | Structured JSON |
-| **Deployment Gate** | Automatic on merge to `main` | Gated behind manual GitHub Environment approval |
+| **Deployment Gate** | Automatic on merge to `main` | Gated behind manual GitHub Environment approval (Required reviewers: `@abhirajadhikary06`, `@Naman-iitm`; 1 approval required) |
 
 ---
 
