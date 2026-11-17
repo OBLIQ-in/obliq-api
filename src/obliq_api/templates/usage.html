@@ -1,524 +1,147 @@
 {% extends "base.html" %}
-
 {% block title %}Usage & Observability{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+.grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-bottom:16px}
+.c7{grid-column:span 7}.c5{grid-column:span 5}
+.chart{height:260px;position:relative}
+.heat{display:grid;grid-template-columns:34px repeat(8,1fr);gap:4px;align-items:center;font-size:11px;color:var(--dim)}
+.heat i{height:22px;border-radius:4px;background:var(--acc);display:block}
+.legend{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:7px 0;color:var(--mute)}
+.legend b{font:500 12px 'JetBrains Mono',monospace;color:#fff}
+.sw{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:8px}
+@media(max-width:860px){.c7,.c5{grid-column:span 12}}
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#1b1e23] gap-4">
+<main>
+<div class="wrap">
+  <div class="head">
     <div>
-      <div class="flex items-center gap-2">
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Usage & Observability</h1>
-        <span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Live Telemetry</span>
-      </div>
-      <p class="text-neutral-400 text-sm mt-1">Live telemetry, request volume, error distributions, and latency percentiles.</p>
+      <h1>Usage &amp; Observability<span class="tag">Live telemetry</span></h1>
+      <p class="sub">Request volume, throughput, and extraction mix across your workspace.</p>
     </div>
-    
-    <!-- Time Filter Pills (Gotics style) -->
-    <div class="flex items-center p-1 bg-[#0d0e11] border border-[#1f2227] rounded-xl self-start sm:self-auto">
-      <button onclick="setTimeRange(7, this)" class="range-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-400 hover:text-white transition">7 Days</button>
-      <button onclick="setTimeRange(30, this)" class="range-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition">30 Days</button>
-      <button onclick="setTimeRange(90, this)" class="range-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-400 hover:text-white transition">90 Days</button>
+    <div class="seg">
+      <button onclick="setTimeRange(7, this)" class="range-pill">7 days</button>
+      <button onclick="setTimeRange(30, this)" class="range-pill on">30 days</button>
+      <button onclick="setTimeRange(90, this)" class="range-pill">90 days</button>
       <input type="hidden" id="select-range" value="30">
     </div>
   </div>
 
-  <!-- Gotics-Style 4 KPI Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
-    
-    <!-- KPI 1: Invocations -->
-    <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition-all duration-200">
-      <div class="flex items-center justify-between">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">Invocations</span>
-      </div>
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total OCR Jobs (30d)</div>
-        <div id="kpi-jobs" class="text-3xl font-extrabold text-white mt-1">--</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-[#17191d] flex items-center text-xs text-neutral-400">
-        <span class="text-emerald-400 font-medium flex items-center mr-1.5">
-          <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-          +2.75%
-        </span>
-        <span>from last period</span>
-      </div>
-    </div>
-
-    <!-- KPI 2: Pages Processed -->
-    <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition-all duration-200">
-      <div class="flex items-center justify-between">
-        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">Pages</span>
-      </div>
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Pages Processed</div>
-        <div id="kpi-pages" class="text-3xl font-extrabold text-white mt-1">--</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-[#17191d] flex items-center text-xs text-neutral-400">
-        <span class="text-blue-400 font-medium flex items-center mr-1.5">
-          <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-          +1.89%
-        </span>
-        <span>throughput index</span>
-      </div>
-    </div>
-
-    <!-- KPI 3: Credits Charged -->
-    <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition-all duration-200">
-      <div class="flex items-center justify-between">
-        <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-          </svg>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-medium">Billing</span>
-      </div>
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Credits Charged</div>
-        <div id="kpi-credits" class="text-3xl font-extrabold text-white mt-1">--</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-[#17191d] flex items-center text-xs text-neutral-400">
-        <span class="text-purple-400 font-medium mr-1.5">&bull;</span>
-        <span>Standard metering tier</span>
-      </div>
-    </div>
-
-    <!-- KPI 4: Failed Jobs -->
-    <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition-all duration-200">
-      <div class="flex items-center justify-between">
-        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 font-medium">Reliability</span>
-      </div>
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Failed Jobs</div>
-        <div id="kpi-failed" class="text-3xl font-extrabold text-rose-400 mt-1">--</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-[#17191d] flex items-center text-xs text-neutral-400">
-        <span class="text-emerald-400 font-medium mr-1.5">&bull;</span>
-        <span>99.98% Service SLA</span>
-      </div>
-    </div>
-
+  <div class="kpis">
+    <div class="kpi"><div class="k">Total OCR jobs (30d)</div><div id="kpi-jobs" class="v">--</div><div class="n"><span style="color:var(--acc)">▲ 2.75%</span> from last period</div></div>
+    <div class="kpi"><div class="k">Pages processed</div><div id="kpi-pages" class="v">--</div><div class="n"><span style="color:var(--acc)">▲ 1.89%</span> throughput index</div></div>
+    <div class="kpi"><div class="k">Credits charged</div><div id="kpi-credits" class="v">--</div><div class="n">Standard metering tier</div></div>
+    <div class="kpi"><div class="k">Failed jobs</div><div id="kpi-failed" class="v" style="color:var(--err)">--</div><div class="n">99.98% service SLA</div></div>
   </div>
 
-  <!-- Row 1: Gotics Active Timeline + User by Time of Day Heatmap -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
-    
-    <!-- Active Requests Timeline (Gotics Style Area Chart) -->
-    <div class="lg:col-span-7 bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h3 class="text-base font-bold text-white tracking-tight">Active Invocations & Volume</h3>
-          <p class="text-xs text-neutral-400 mt-0.5">Smooth trendline of processed OCR pipelines over time.</p>
-        </div>
-        <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          Live Flow
-        </span>
-      </div>
-      <div class="h-64 relative w-full">
-        <canvas id="chart-requests"></canvas>
-      </div>
-      <div class="mt-4 pt-4 border-t border-[#17191d] flex items-center justify-between text-xs text-neutral-400">
-        <span>Aggregation: Daily OCR submissions vs extracted pages</span>
-        <span class="font-medium text-emerald-400">Automated retry fallback</span>
+  <div class="grid12">
+    <div class="panel c7">
+      <div class="panel-h"><div><h3>Invocations &amp; volume</h3><p>Daily OCR submissions versus extracted pages.</p></div><span class="badge b-ok">Live</span></div>
+      <div class="panel-b"><div class="chart"><canvas id="chart-requests"></canvas></div></div>
+    </div>
+    <div class="panel c5">
+      <div class="panel-h"><div><h3>Traffic by time of day</h3><p>Load density across operating hours.</p></div><span class="mono" style="font-size:11px;color:var(--dim)">UTC</span></div>
+      <div class="panel-b">
+        <div class="heat" style="margin-bottom:6px"><span></span><span>12a</span><span>3a</span><span>6a</span><span>9a</span><span>12p</span><span>3p</span><span>6p</span><span>9p</span></div>
+        <div id="heatmap" style="display:grid;gap:4px"></div>
+        <div class="legend" style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px"><span>Density</span><span style="display:flex;gap:6px;align-items:center" class="mono">Low <i style="width:14px;height:8px;border-radius:2px;background:var(--acc);opacity:.15;display:inline-block"></i><i style="width:14px;height:8px;border-radius:2px;background:var(--acc);opacity:.5;display:inline-block"></i><i style="width:14px;height:8px;border-radius:2px;background:var(--acc);display:inline-block"></i> High</span></div>
       </div>
     </div>
-
-    <!-- Gotics Top-Right Widget: "User by time of day" Heatmap Matrix -->
-    <div class="lg:col-span-5 bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-2">
-        <div>
-          <h3 class="text-base font-bold text-white tracking-tight">Traffic by Time of Day</h3>
-          <p class="text-xs text-neutral-400 mt-0.5">Load density pattern across operational hours.</p>
-        </div>
-        <span class="text-xs text-neutral-400 font-mono">UTC</span>
-      </div>
-
-      <!-- Heatmap Grid -->
-      <div class="my-3 space-y-1.5 font-sans">
-        <!-- Time header labels -->
-        <div class="grid grid-cols-9 gap-1 text-[10px] text-neutral-400 text-center font-mono">
-          <div></div>
-          <div>12a</div>
-          <div>3a</div>
-          <div>6a</div>
-          <div>9a</div>
-          <div>12p</div>
-          <div>3p</div>
-          <div>6p</div>
-          <div>9p</div>
-        </div>
-        
-        <!-- Day rows -->
-        <div class="grid grid-cols-9 gap-1 items-center text-xs">
-          <span class="text-[10px] text-neutral-400 font-medium">Sun</span>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-          <div class="h-5 rounded bg-emerald-500/40"></div>
-          <div class="h-5 rounded bg-emerald-500/70"></div>
-          <div class="h-5 rounded bg-emerald-500/50"></div>
-          <div class="h-5 rounded bg-emerald-500/30"></div>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-        </div>
-        <div class="grid grid-cols-9 gap-1 items-center text-xs">
-          <span class="text-[10px] text-neutral-400 font-medium">Mon</span>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/30"></div>
-          <div class="h-5 rounded bg-emerald-500/80"></div>
-          <div class="h-5 rounded bg-emerald-400"></div>
-          <div class="h-5 rounded bg-emerald-500/90"></div>
-          <div class="h-5 rounded bg-emerald-500/60"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-        </div>
-        <div class="grid grid-cols-9 gap-1 items-center text-xs">
-          <span class="text-[10px] text-neutral-400 font-medium">Tue</span>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-          <div class="h-5 rounded bg-emerald-500/40"></div>
-          <div class="h-5 rounded bg-emerald-500/90"></div>
-          <div class="h-5 rounded bg-emerald-400"></div>
-          <div class="h-5 rounded bg-emerald-500/80"></div>
-          <div class="h-5 rounded bg-emerald-500/50"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-        </div>
-        <div class="grid grid-cols-9 gap-1 items-center text-xs">
-          <span class="text-[10px] text-neutral-400 font-medium">Wed</span>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/30"></div>
-          <div class="h-5 rounded bg-emerald-500/70"></div>
-          <div class="h-5 rounded bg-emerald-400"></div>
-          <div class="h-5 rounded bg-emerald-500/90"></div>
-          <div class="h-5 rounded bg-emerald-500/60"></div>
-          <div class="h-5 rounded bg-emerald-500/30"></div>
-        </div>
-        <div class="grid grid-cols-9 gap-1 items-center text-xs">
-          <span class="text-[10px] text-neutral-400 font-medium">Thu</span>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-          <div class="h-5 rounded bg-emerald-500/40"></div>
-          <div class="h-5 rounded bg-emerald-500/80"></div>
-          <div class="h-5 rounded bg-emerald-400"></div>
-          <div class="h-5 rounded bg-emerald-500/70"></div>
-          <div class="h-5 rounded bg-emerald-500/40"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-        </div>
-        <div class="grid grid-cols-9 gap-1 items-center text-xs">
-          <span class="text-[10px] text-neutral-400 font-medium">Fri</span>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-          <div class="h-5 rounded bg-emerald-500/40"></div>
-          <div class="h-5 rounded bg-emerald-500/70"></div>
-          <div class="h-5 rounded bg-emerald-500/90"></div>
-          <div class="h-5 rounded bg-emerald-500/70"></div>
-          <div class="h-5 rounded bg-emerald-500/30"></div>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-        </div>
-        <div class="grid grid-cols-9 gap-1 items-center text-xs">
-          <span class="text-[10px] text-neutral-400 font-medium">Sat</span>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-          <div class="h-5 rounded bg-emerald-500/30"></div>
-          <div class="h-5 rounded bg-emerald-500/40"></div>
-          <div class="h-5 rounded bg-emerald-500/30"></div>
-          <div class="h-5 rounded bg-emerald-500/20"></div>
-          <div class="h-5 rounded bg-emerald-500/10"></div>
-        </div>
-      </div>
-
-      <!-- Legend bar (from Gotics Image 3) -->
-      <div class="pt-3 border-t border-[#17191d] flex items-center justify-between text-[11px] text-neutral-400">
-        <span>Density:</span>
-        <div class="flex items-center space-x-1.5 font-mono text-[10px]">
-          <span>50</span>
-          <span class="h-2 w-5 rounded bg-emerald-500/20"></span>
-          <span>200</span>
-          <span class="h-2 w-5 rounded bg-emerald-500/50"></span>
-          <span>400</span>
-          <span class="h-2 w-5 rounded bg-emerald-500/80"></span>
-          <span>800+</span>
-          <span class="h-2 w-5 rounded bg-emerald-400"></span>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <!-- Row 2: Hourly Traffic & Model Breakdown (Gotics Sessions by Device Donut) -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
-    
-    <!-- Hourly Recent Traffic -->
-    <div class="lg:col-span-7 bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h3 class="text-base font-bold text-white tracking-tight">Hourly Traffic Trend (Recent 24h)</h3>
-          <p class="text-xs text-neutral-400 mt-0.5">Real-time throughput across each serverless processing cycle.</p>
-        </div>
-        <span class="text-xs font-mono text-neutral-400">Rolling 24 Hours</span>
-      </div>
-      <div class="h-64 relative w-full">
-        <canvas id="chart-hourly"></canvas>
-      </div>
+  <div class="grid12">
+    <div class="panel c7">
+      <div class="panel-h"><div><h3>Hourly traffic</h3><p>Requests per hour over the last 24 hours.</p></div><span class="mono" style="font-size:11px;color:var(--dim)">Rolling 24h</span></div>
+      <div class="panel-b"><div class="chart"><canvas id="chart-hourly"></canvas></div></div>
     </div>
-
-    <!-- Gotics Bottom-Right Widget: Donut Chart Breakdown -->
-    <div class="lg:col-span-5 bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl flex flex-col justify-between">
-      <div class="flex items-center justify-between mb-2">
-        <div>
-          <h3 class="text-base font-bold text-white tracking-tight">Pipeline & Extraction Type</h3>
-          <p class="text-xs text-neutral-400 mt-0.5">Breakdown by document OCR resolution method.</p>
+    <div class="panel c5">
+      <div class="panel-h"><div><h3>Extraction type</h3><p>Breakdown by document resolution method.</p></div></div>
+      <div class="panel-b">
+        <div class="chart" style="height:170px;display:grid;place-items:center">
+          <canvas id="chart-donut"></canvas>
+          <div style="position:absolute;text-align:center;pointer-events:none"><div id="donut-total" style="font-size:24px;font-weight:600">100%</div><div style="font-size:11px;color:var(--dim)">Processed</div></div>
         </div>
-      </div>
-
-      <!-- Central Donut Container -->
-      <div class="relative flex items-center justify-center my-4 h-48">
-        <canvas id="chart-donut"></canvas>
-        <div class="absolute flex flex-col items-center justify-center pointer-events-none">
-          <span class="text-2xl font-extrabold text-white" id="donut-total">100%</span>
-          <span class="text-[11px] text-neutral-400 uppercase tracking-wider">Processed</span>
-        </div>
-      </div>
-
-      <!-- Legend items (Gotics style with percentage breakdown) -->
-      <div class="space-y-2 pt-3 border-t border-[#17191d] text-xs">
-        <div class="flex items-center justify-between text-neutral-300">
-          <div class="flex items-center space-x-2">
-            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
-            <span>Scanned Documents (OCR Deep)</span>
-          </div>
-          <span class="font-bold text-white font-mono">78.5%</span>
-        </div>
-        <div class="flex items-center justify-between text-neutral-300">
-          <div class="flex items-center space-x-2">
-            <span class="h-2.5 w-2.5 rounded-full bg-blue-400"></span>
-            <span>Digital Native (Text Layer)</span>
-          </div>
-          <span class="font-bold text-white font-mono">19.7%</span>
-        </div>
-        <div class="flex items-center justify-between text-neutral-300">
-          <div class="flex items-center space-x-2">
-            <span class="h-2.5 w-2.5 rounded-full bg-purple-400"></span>
-            <span>Tables & Invoices Structured</span>
-          </div>
-          <span class="font-bold text-white font-mono">1.8%</span>
+        <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:8px">
+          <div class="legend"><span><i class="sw" style="background:#3ecf8e"></i>Scanned documents (deep OCR)</span><b>78.5%</b></div>
+          <div class="legend"><span><i class="sw" style="background:#5aa9f0"></i>Digital native (text layer)</span><b>19.7%</b></div>
+          <div class="legend"><span><i class="sw" style="background:#a78bfa"></i>Tables &amp; invoices</span><b>1.8%</b></div>
         </div>
       </div>
     </div>
-
   </div>
-
+</div>
 </main>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  let reqChart = null;
-  let hourlyChart = null;
-  let donutChart = null;
+  let reqChart=null, hourlyChart=null, donutChart=null;
+  const tip={backgroundColor:'#171717',borderColor:'#2a2a2a',borderWidth:1,titleColor:'#fff',bodyColor:'#ededed',padding:10,cornerRadius:6};
+  const tick={color:'#6f6f6f',font:{family:'JetBrains Mono',size:10}};
+  const grid={color:'rgba(42,42,42,.7)'};
 
-  function setTimeRange(days, btn) {
-    document.querySelectorAll('.range-pill').forEach(b => {
-      b.className = 'range-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-400 hover:text-white transition';
-    });
-    btn.className = 'range-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 transition';
-    document.getElementById('select-range').value = days;
+  function setTimeRange(days, btn){
+    document.querySelectorAll('.range-pill').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('select-range').value=days;
     loadUsage();
   }
 
-  async function loadUsage() {
-    const days = document.getElementById('select-range').value;
-    try {
-      // 1. Summary KPIs
-      const sumResp = await apiFetch('/v1/dashboard/summary');
-      const sum = await sumResp.json();
-      document.getElementById('kpi-jobs').innerText = (sum.usage_last_30_days?.jobs ?? 0).toLocaleString();
-      document.getElementById('kpi-pages').innerText = (sum.usage_last_30_days?.pages_processed ?? 0).toLocaleString();
-      document.getElementById('kpi-credits').innerText = (sum.usage_last_30_days?.credits_charged ?? 0).toLocaleString();
-      document.getElementById('kpi-failed').innerText = (sum.usage_last_30_days?.failed_jobs ?? 0).toLocaleString();
+  function buildHeatmap(){
+    const rows={Sun:[1,1,2,4,7,5,3,1],Mon:[1,1,3,8,10,9,6,2],Tue:[1,2,4,9,10,8,5,2],Wed:[1,1,3,7,10,9,6,3],Thu:[1,2,4,8,10,7,4,2],Fri:[1,2,4,7,9,7,3,1],Sat:[1,1,2,3,4,3,2,1]};
+    document.getElementById('heatmap').innerHTML=Object.entries(rows).map(([d,v])=>
+      `<div class="heat"><span>${d}</span>${v.map(n=>`<i style="opacity:${(n/10).toFixed(2)}"></i>`).join('')}</div>`).join('');
+  }
 
-      // 2. Daily Time-Series
-      const dailyResp = await apiFetch(`/v1/dashboard/usage/daily?days=${days}`);
-      const daily = await dailyResp.json();
-      renderDailyChart(daily.days || []);
-
-      // 3. Hourly Time-Series
-      const hourlyResp = await apiFetch('/v1/dashboard/usage/hourly?hours=24');
-      const hourly = await hourlyResp.json();
-      renderHourlyChart(hourly.hours || []);
-
-      // 4. Donut Breakdown
+  async function loadUsage(){
+    const days=document.getElementById('select-range').value;
+    try{
+      const sum=await (await apiFetch('/v1/dashboard/summary')).json();
+      const u=sum.usage_last_30_days||{};
+      document.getElementById('kpi-jobs').innerText=(u.jobs??0).toLocaleString();
+      document.getElementById('kpi-pages').innerText=(u.pages_processed??0).toLocaleString();
+      document.getElementById('kpi-credits').innerText=(u.credits_charged??0).toLocaleString();
+      document.getElementById('kpi-failed').innerText=(u.failed_jobs??0).toLocaleString();
+      const daily=await (await apiFetch(`/v1/dashboard/usage/daily?days=${days}`)).json();
+      renderDailyChart(daily.days||[]);
+      const hourly=await (await apiFetch('/v1/dashboard/usage/hourly?hours=24')).json();
+      renderHourlyChart(hourly.hours||[]);
       renderDonutChart();
-    } catch (err) {
-      console.error('Failed to load telemetry:', err);
-    }
+    }catch(err){ console.error('Failed to load telemetry:',err); }
   }
 
-  function renderDailyChart(days) {
-    const ctx = document.getElementById('chart-requests').getContext('2d');
-    if (reqChart) reqChart.destroy();
-
-    const labels = days.map(d => d.date);
-    const jobs = days.map(d => d.jobs);
-    const pages = days.map(d => d.pages_processed);
-
-    // Gotics-style smooth area curve with gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-    gradient.addColorStop(0, 'rgba(0, 229, 153, 0.25)');
-    gradient.addColorStop(1, 'rgba(0, 229, 153, 0.0)');
-
-    reqChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Jobs Submitted',
-            data: jobs,
-            borderColor: '#00e599',
-            backgroundColor: gradient,
-            fill: true,
-            tension: 0.4,
-            borderWidth: 2.5,
-            pointRadius: 3,
-            pointHoverRadius: 6,
-            pointBackgroundColor: '#00e599',
-          },
-          {
-            label: 'Pages Extracted',
-            data: pages,
-            borderColor: '#38bdf8',
-            backgroundColor: 'transparent',
-            borderDash: [4, 4],
-            tension: 0.4,
-            borderWidth: 2,
-            pointRadius: 0,
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top',
-            align: 'end',
-            labels: { color: '#9ca3af', boxWidth: 12, font: { family: 'Bricolage Grotesque', size: 12 } }
-          },
-          tooltip: {
-            backgroundColor: '#0f1013',
-            borderColor: '#1f2227',
-            borderWidth: 1,
-            titleColor: '#ffffff',
-            bodyColor: '#e5e7eb',
-            padding: 10,
-            cornerRadius: 8
-          }
-        },
-        scales: {
-          x: { ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(31, 34, 39, 0.6)' } },
-          y: { ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(31, 34, 39, 0.6)' } }
-        }
-      }
-    });
+  function renderDailyChart(days){
+    const ctx=document.getElementById('chart-requests').getContext('2d');
+    if(reqChart) reqChart.destroy();
+    const g=ctx.createLinearGradient(0,0,0,260);
+    g.addColorStop(0,'rgba(62,207,142,.22)'); g.addColorStop(1,'rgba(62,207,142,0)');
+    reqChart=new Chart(ctx,{type:'line',data:{labels:days.map(d=>d.date),datasets:[
+      {label:'Jobs submitted',data:days.map(d=>d.jobs),borderColor:'#3ecf8e',backgroundColor:g,fill:true,tension:.4,borderWidth:2,pointRadius:0,pointHoverRadius:5},
+      {label:'Pages extracted',data:days.map(d=>d.pages_processed),borderColor:'#5aa9f0',borderDash:[4,4],tension:.4,borderWidth:2,pointRadius:0}
+    ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',align:'end',labels:{color:'#a0a0a0',boxWidth:10,font:{family:'Inter',size:12}}},tooltip:tip},
+      scales:{x:{ticks:tick,grid},y:{ticks:tick,grid}}}});
   }
 
-  function renderHourlyChart(hours) {
-    const ctx = document.getElementById('chart-hourly').getContext('2d');
-    if (hourlyChart) hourlyChart.destroy();
-
-    const labels = hours.map(h => h.hour.slice(-5));
-    const jobs = hours.map(h => h.jobs);
-
-    hourlyChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Requests / Hour',
-          data: jobs,
-          backgroundColor: 'rgba(0, 229, 153, 0.8)',
-          hoverBackgroundColor: '#00e599',
-          borderRadius: 6,
-          borderSkipped: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0f1013',
-            borderColor: '#1f2227',
-            borderWidth: 1,
-            titleColor: '#ffffff',
-            bodyColor: '#e5e7eb',
-            cornerRadius: 8
-          }
-        },
-        scales: {
-          x: { ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 10 } }, grid: { display: false } },
-          y: { ticks: { color: '#6b7280', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(31, 34, 39, 0.6)' } }
-        }
-      }
-    });
+  function renderHourlyChart(hours){
+    const ctx=document.getElementById('chart-hourly').getContext('2d');
+    if(hourlyChart) hourlyChart.destroy();
+    hourlyChart=new Chart(ctx,{type:'bar',data:{labels:hours.map(h=>h.hour.slice(-5)),datasets:[{label:'Requests / hour',data:hours.map(h=>h.jobs),backgroundColor:'rgba(62,207,142,.75)',hoverBackgroundColor:'#3ecf8e',borderRadius:4,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tip},scales:{x:{ticks:tick,grid:{display:false}},y:{ticks:tick,grid}}}});
   }
 
-  function renderDonutChart() {
-    const ctx = document.getElementById('chart-donut').getContext('2d');
-    if (donutChart) donutChart.destroy();
-
-    donutChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Scanned OCR', 'Text Layer', 'Table Extraction'],
-        datasets: [{
-          data: [78.5, 19.7, 1.8],
-          backgroundColor: ['#00e599', '#38bdf8', '#c084fc'],
-          borderWidth: 0,
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '76%',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0f1013',
-            borderColor: '#1f2227',
-            borderWidth: 1,
-            titleColor: '#ffffff',
-            bodyColor: '#e5e7eb',
-            cornerRadius: 8
-          }
-        }
-      }
-    });
+  function renderDonutChart(){
+    const ctx=document.getElementById('chart-donut').getContext('2d');
+    if(donutChart) donutChart.destroy();
+    donutChart=new Chart(ctx,{type:'doughnut',data:{labels:['Scanned OCR','Text layer','Table extraction'],datasets:[{data:[78.5,19.7,1.8],backgroundColor:['#3ecf8e','#5aa9f0','#a78bfa'],borderColor:'#171717',borderWidth:3,hoverOffset:4}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:tip}}});
   }
 
-  document.addEventListener('DOMContentLoaded', loadUsage);
+  document.addEventListener('DOMContentLoaded',()=>{ buildHeatmap(); loadUsage(); });
 </script>
 {% endblock %}
