@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Developer Portal{% endblock %} - Obliq Developer Portal</title>
+  <title>{% block title %}Developer Portal{% endblock %} - OBLIQ-in Developer Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -14,54 +14,156 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              DEFAULT: '#00e599',
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              accent: '#00e599',
+            },
+            surface: {
+              base: '#08090a',
+              card: '#0f1013',
+              cardHover: '#14161a',
+              border: '#1f2227',
+              borderHover: '#2a2e36',
+              muted: '#717885',
+            }
           }
         }
       }
     }
   </script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    code, pre { font-family: 'JetBrains Mono', monospace; }
+    body {
+      font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+      background-color: #08090a;
+      color: #f3f4f6;
+    }
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbar for dark theme */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #08090a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f2227;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2e343d;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+<body class="bg-[#08090a] text-neutral-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500/20 selection:text-emerald-300">
 
-<nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+<!-- Top Navigation -->
+<nav class="border-b border-[#1b1e23] bg-[#0a0b0d]/90 backdrop-blur-md sticky top-0 z-40">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
+      
+      <!-- Brand & Navigation links -->
       <div class="flex items-center space-x-8">
-        <a href="/dashboard/keys" class="flex items-center space-x-3">
-          <div class="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">O</div>
-          <span class="font-semibold text-lg tracking-tight text-white">Obliq <span class="text-xs px-2 py-0.5 rounded bg-indigo-900/50 text-indigo-400 border border-indigo-700/50 ml-1">Portal</span></span>
+        <a href="/dashboard/keys" class="flex items-center py-1 group">
+          <span class="font-extrabold text-xl tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+            OBLIQ<span class="text-emerald-400">-in</span>
+          </span>
+          <span class="ml-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+            Portal
+          </span>
         </a>
+
         <div class="hidden md:flex space-x-1">
-          <a href="/dashboard/keys" id="nav-keys" class="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">API Keys</a>
-          <a href="/dashboard/usage" id="nav-usage" class="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">Usage & Analytics</a>
-          <a href="/dashboard/docs" id="nav-docs" class="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">Client Docs & SDK</a>
-          <a href="/docs" target="_blank" class="px-3 py-2 rounded-md text-sm font-medium text-slate-400 hover:text-indigo-400 transition flex items-center">OpenAPI <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
+          <a href="/dashboard/keys" id="nav-keys" class="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-300 hover:text-white hover:bg-[#15171b] transition">
+            API Keys
+          </a>
+          <a href="/dashboard/usage" id="nav-usage" class="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-300 hover:text-white hover:bg-[#15171b] transition">
+            Usage & Observability
+          </a>
+          <a href="/dashboard/docs" id="nav-docs" class="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-300 hover:text-white hover:bg-[#15171b] transition">
+            Client Docs & SDK
+          </a>
+          <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-emerald-400 hover:bg-[#15171b] transition flex items-center gap-1.5">
+            <span>OpenAPI</span>
+            <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
         </div>
       </div>
+
+      <!-- Auth & Actions -->
       <div class="flex items-center space-x-3">
-        <button onclick="promptAuthToken()" id="auth-btn" class="text-xs px-3 py-1.5 rounded-md border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 transition flex items-center">
-          <span class="h-2 w-2 rounded-full bg-emerald-500 mr-2" id="auth-indicator"></span>
+        <button onclick="promptAuthToken()" id="auth-btn" class="text-xs px-3 py-1.5 rounded-lg border border-[#23272e] bg-[#121418] text-neutral-300 hover:bg-[#181a1f] hover:border-[#2f343d] transition flex items-center shadow-sm">
+          <span class="relative flex h-2 w-2 mr-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" id="auth-indicator"></span>
+          </span>
           <span id="auth-label">API Key / Token</span>
         </button>
       </div>
+
     </div>
   </div>
 </nav>
 
-<div id="offline-banner" class="hidden bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-sm text-amber-400 flex items-center justify-center">
-  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+<!-- Offline Warning Banner -->
+<div id="offline-banner" class="hidden bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-xs text-amber-400 flex items-center justify-center gap-2">
+  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+  </svg>
   <span>You are offline. Key creation, rotation, and live metrics require an active network connection.</span>
 </div>
 
+<!-- Main Content Slot -->
 {% block content %}{% endblock %}
 
+<!-- Footer -->
+<footer class="mt-auto border-t border-[#1b1e23] bg-[#090a0c] py-6 text-xs text-neutral-400">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center space-x-2">
+      <span class="font-bold text-white tracking-tight">OBLIQ<span class="text-emerald-400">-in</span></span>
+      <span>&copy; 2026. High-performance OCR microservice engine.</span>
+    </div>
+    <div class="flex items-center space-x-6 text-neutral-400">
+      <a href="/dashboard/docs" class="hover:text-emerald-400 transition">Client SDKs</a>
+      <a href="/docs" target="_blank" class="hover:text-emerald-400 transition">API Reference</a>
+      <span class="flex items-center gap-1.5 text-neutral-400">
+        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+        Systems Operational
+      </span>
+    </div>
+  </div>
+</footer>
+
 <script>
+  // Active Navigation Highlighting
+  (function highlightNav() {
+    const p = window.location.pathname;
+    if (p.includes('/keys')) {
+      const el = document.getElementById('nav-keys');
+      if (el) el.className = 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    } else if (p.includes('/usage')) {
+      const el = document.getElementById('nav-usage');
+      if (el) el.className = 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    } else if (p.includes('/docs')) {
+      const el = document.getElementById('nav-docs');
+      if (el) el.className = 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    }
+  })();
+
   // Auth Token Management
   function getAuthToken() {
     return localStorage.getItem('obliq_auth_token') || '';
@@ -91,10 +193,10 @@
     const label = document.getElementById('auth-label');
     if (indicator && label) {
       if (token) {
-        indicator.className = 'h-2 w-2 rounded-full bg-emerald-500 mr-2';
+        indicator.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-500';
         label.innerText = 'Authenticated (' + token.slice(0, 10) + '...)';
       } else {
-        indicator.className = 'h-2 w-2 rounded-full bg-amber-500 mr-2';
+        indicator.className = 'relative inline-flex rounded-full h-2 w-2 bg-amber-500';
         label.innerText = 'Set Auth Token';
       }
     }
