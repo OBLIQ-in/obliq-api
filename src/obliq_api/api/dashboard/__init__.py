@@ -85,6 +85,14 @@ class HourlyUsageResponse(BaseModel):
     hours: list[HourlyUsage]
 
 
+class HeatmapResponse(BaseModel):
+    days: list[str]
+    slots: list[str]
+    matrix: dict[str, list[int]]
+    total_requests: int
+    max_density: int
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -231,3 +239,52 @@ async def get_hourly_usage(
     ]
 
     return HourlyUsageResponse(hours=result_hours)
+
+
+@router.get("/usage/heatmap", response_model=HeatmapResponse)
+async def get_usage_heatmap(
+    days: int = Query(30, ge=1, le=90),
+    key_id: UUID | None = Query(None),
+    ctx: AuthContext = Depends(require_dashboard_user),
+    db: AsyncSession = Depends(get_db),
+) -> HeatmapResponse:
+    """Return day-of-week by hour-of-day traffic distribution matrix for telemetry."""
+    org_id: UUID = ctx.organisation_id
+    since = datetime.now(UTC) - timedelta(days=days)
+
+    query = select(UsageRecord.created_at).where(
+        UsageRecord.organisation_id == org_id,
+        UsageRecord.created_at >= since,
+    )
+    if key_id:
+        query = query.where(UsageRecord.api_key_id == key_id)
+
+    result = await db.execute(query)
+    timestamps = result.scalars().all()
+
+    day_labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    slot_labels = ["12a", "3a", "6a", "9a", "12p", "3p", "6p", "9p"]
+    matrix: dict[str, list[int]] = {d: [0] * 8 for d in day_labels}
+
+    total_requests = 0
+    max_density = 0
+    for ts in timestamps:
+        if ts is not None:
+            # Map Python weekday (0=Mon..6=Sun) to Sun=0..Sat=6
+            dow = (ts.weekday() + 1) % 7
+            slot = min(7, ts.hour // 3)
+            matrix[day_labels[dow]][slot] += 1
+            total_requests += 1
+
+    for row_counts in matrix.values():
+        for c in row_counts:
+            if c > max_density:
+                max_density = c
+
+    return HeatmapResponse(
+        days=day_labels,
+        slots=slot_labels,
+        matrix=matrix,
+        total_requests=total_requests,
+        max_density=max_density,
+    )
