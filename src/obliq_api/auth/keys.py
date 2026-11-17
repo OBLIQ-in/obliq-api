@@ -1,9 +1,10 @@
 import hashlib
 import secrets
-from datetime import UTC, datetime
+from datetime import datetime
 
 from passlib.context import CryptContext
 
+from obliq_api.compat import UTC
 from obliq_api.config import get_settings
 
 settings = get_settings()

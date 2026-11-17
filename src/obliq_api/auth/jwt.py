@@ -1,9 +1,10 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID
 
 from jose import JWTError, jwt
 
+from obliq_api.compat import UTC
 from obliq_api.config import get_settings
 from obliq_api.exceptions import AuthenticationError
 
