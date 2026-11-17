@@ -205,10 +205,51 @@ with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
   <section class="section" style="border-bottom:0">
     <div><h2>Guided paths</h2><p>Architecture walkthroughs for common production setups.</p></div>
     <div class="cards">
-      <div class="card hov"><span class="ico">⚡</span><h3>Full backend quickstart</h3><p>End-to-end integration with the Next.js App Router, webhooks, and secure storage.</p></div>
-      <div class="card hov"><span class="ico" style="color:var(--blue)">↻</span><h3>Zero-downtime rotation</h3><p>Automate CI/CD secret rotation without dropping in-flight uploads.</p></div>
-      <div class="card hov"><span class="ico" style="color:var(--violet)">≣</span><h3>High-throughput batching</h3><p>Process large invoice archives with concurrent worker pools.</p></div>
-      <a href="/docs" target="_blank" rel="noopener" class="card"><span class="ico" style="color:#4cc9d8">API</span><h3>API reference</h3><p>Browse every endpoint in Swagger or Redoc.</p></a>
+      <div class="card hov">
+        <span class="ico" style="color:var(--acc)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </span>
+        <h3>Full backend quickstart</h3>
+        <p>End-to-end integration with the Next.js App Router, webhooks, and secure storage.</p>
+      </div>
+
+      <div class="card hov">
+        <span class="ico" style="color:var(--blue)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+            <path d="M16 16h5v5"></path>
+          </svg>
+        </span>
+        <h3>Zero-downtime rotation</h3>
+        <p>Automate CI/CD secret rotation without dropping in-flight uploads.</p>
+      </div>
+
+      <div class="card hov">
+        <span class="ico" style="color:var(--violet)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </span>
+        <h3>High-throughput batching</h3>
+        <p>Process large invoice archives with concurrent worker pools.</p>
+      </div>
+
+      <a href="/docs" target="_blank" rel="noopener" class="card">
+        <span class="ico" style="color:#4cc9d8">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </span>
+        <h3>API reference</h3>
+        <p>Browse every endpoint in Swagger or Redoc.</p>
+      </a>
     </div>
   </section>
 </div>
