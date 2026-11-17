@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from obliq_api.auth.jwt import decode_token
-from obliq_api.auth.keys import verify_api_key
+from obliq_api.auth.keys import utcnow, verify_api_key
 from obliq_api.config import get_settings
 from obliq_api.db.session import get_db
 from obliq_api.exceptions import AuthenticationError, AuthorizationError, RateLimitExceededError
@@ -118,6 +118,17 @@ async def check_rate_limits(
     if not allowed:
         raise RateLimitExceededError(retry_after=retry_after)
 
+    # Per-key rate check
+    if ctx.api_key:
+        key_id = str(ctx.api_key.id)
+        allowed, retry_after = await limiter.is_allowed(
+            f"key:{key_id}:req",
+            limit=settings.rate_limit_requests_per_minute,
+            window_seconds=60,
+        )
+        if not allowed:
+            raise RateLimitExceededError(retry_after=retry_after)
+
 
 # ---------------------------------------------------------------------------
 # FastAPI auth dependencies
@@ -147,18 +158,40 @@ async def require_api_key(
     result = await db.execute(
         select(ApiKey).where(
             ApiKey.key_prefix == prefix,
-            ApiKey.status == "active",
+            ApiKey.status.in_(["active", "expiring"]),
         )
     )
     api_key = result.scalar_one_or_none()
     if api_key is None or not verify_api_key(token, api_key.key_hash):
         raise AuthenticationError("Invalid or revoked API key")
 
+    if api_key.expires_at is not None and api_key.expires_at < utcnow():
+        raise AuthenticationError("API key has expired")
+
+    api_key.last_used_at = utcnow()
+    await db.flush()
+
     return AuthContext(
         organisation_id=api_key.organisation_id,
         api_key=api_key,
         is_internal=api_key.is_internal,
     )
+
+
+def require_scope(required_scope: str):
+    async def dependency(ctx: AuthContext = Depends(require_api_key)) -> AuthContext:
+        if ctx.is_internal:
+            return ctx
+        if (
+            ctx.api_key
+            and ctx.api_key.scopes
+            and required_scope not in ctx.api_key.scopes
+            and "*" not in ctx.api_key.scopes
+        ):
+            raise AuthorizationError(f"Insufficient permissions: '{required_scope}' scope required")
+        return ctx
+
+    return dependency
 
 
 async def require_dashboard_user(
