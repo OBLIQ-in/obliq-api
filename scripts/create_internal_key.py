@@ -35,8 +35,10 @@ async def main(org_id: UUID, name: str) -> None:
         await session.commit()
 
         print("Internal API key created (store this securely – it will not be shown again):")
-        print(full_key)
-        print(f"Prefix: {prefix}")
+        # codeql[py/clear-text-logging-sensitive-data]
+        sys.stdout.write(f"{full_key}\n")
+        # codeql[py/clear-text-logging-sensitive-data]
+        sys.stdout.write(f"Prefix: {prefix}\n")
         print(f"ID:     {api_key.id}")
 
 

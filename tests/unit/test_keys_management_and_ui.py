@@ -27,7 +27,7 @@ def test_require_scope_dependency():
     key = ApiKey(
         organisation_id=org_id,
         name="test",
-        key_prefix="obliq_live_12345678",
+        key_prefix="test_prefix_1",
         key_hash="hash",
         scopes=["ocr:write"],
         status="active",
@@ -49,7 +49,7 @@ def test_api_key_expiration_check():
     key = ApiKey(
         organisation_id=org_id,
         name="expired-key",
-        key_prefix="obliq_live_expired8",
+        key_prefix="test_prefix_2",
         key_hash="hash",
         scopes=["ocr:read", "ocr:write"],
         expires_at=past,
