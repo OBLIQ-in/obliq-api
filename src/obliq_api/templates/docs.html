@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Client SDK Documentation{% endblock %}
+
+{% block content %}
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans">
+  <div class="pb-6 border-b border-slate-800">
+    <h1 class="text-2xl font-bold tracking-tight text-white">API Client SDKs & Code Examples</h1>
+    <p class="text-slate-400 text-sm mt-1">Official libraries and quickstarts to integrate Obliq OCR into your frontend applications, backends, and serverless jobs.</p>
+  </div>
+
+  <!-- Language Switcher Tabs -->
+  <div class="flex space-x-2 my-6 border-b border-slate-800 pb-2">
+    <button onclick="switchTab('ts')" id="tab-btn-ts" class="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white transition">TypeScript / Next.js</button>
+    <button onclick="switchTab('python')" id="tab-btn-python" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition">Python</button>
+    <button onclick="switchTab('curl')" id="tab-btn-curl" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition">cURL / CLI</button>
+  </div>
+
+  <!-- TypeScript Section -->
+  <div id="tab-ts" class="space-y-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <h3 class="text-lg font-bold text-white mb-2">1. Installation</h3>
+      <p class="text-slate-400 text-sm mb-3">Install the official isomorphic client library:</p>
+      <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-sm text-indigo-300 flex justify-between items-center">
+        <span>pnpm add @obliq/client</span>
+        <button onclick="navigator.clipboard.writeText('pnpm add @obliq/client')" class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-300 hover:bg-slate-700">Copy</button>
+      </div>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <h3 class="text-lg font-bold text-white mb-2">2. Document OCR in Next.js / Node.js</h3>
+      <p class="text-slate-400 text-sm mb-3">Submit document, poll for completion, and extract page text:</p>
+      <pre class="bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-xs text-slate-300 overflow-x-auto"><code>import { ObliqClient } from "@obliq/client";
+import * as fs from "node:fs/promises";
+
+const client = new ObliqClient({
+  apiKey: process.env.OBLIQ_API_KEY,
+  baseUrl: "https://api.obliq.in",
+});
+
+// 1. Submit document (accepts File, Blob, Buffer, or Stream)
+const fileBuffer = await fs.readFile("./invoice.pdf");
+const job = await client.jobs.create({
+  file: fileBuffer,
+  fileName: "invoice.pdf",
+});
+
+console.log(`Job enqueued: ${job.id}`);
+
+// 2. Poll until completed (with live progress callback)
+const result = await client.jobs.poll(job.id, {
+  pollIntervalMs: 1000,
+  timeoutMs: 60000,
+  onProgress: (status) => console.log(`Current status: ${status.status}`),
+});
+
+console.log(`Extracted ${result.page_count} pages in ${result.processing_time_ms}ms:`);
+for (const page of result.pages) {
+  console.log(`Page ${page.page_number}: ${page.text}`);
+}</code></pre>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <h3 class="text-lg font-bold text-white mb-2">3. API Key Management via SDK</h3>
+      <pre class="bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-xs text-slate-300 overflow-x-auto"><code>// List active workspace keys
+const keys = await client.keys.list();
+
+// Generate a new key with specific scopes and 90-day expiry
+const newKey = await client.keys.create({
+  name: "worker-invoice-service",
+  scopes: ["ocr:read", "ocr:write"],
+  expiresInDays: 90,
+});
+console.log(`Save your key: ${newKey.key}`);
+
+// Zero-downtime rotation with 24-hour overlap grace period
+const rotated = await client.keys.rotate(newKey.id, { gracePeriodHours: 24 });
+console.log(`Rotated key: ${rotated.key}`);</code></pre>
+    </div>
+  </div>
+
+  <!-- Python Section -->
+  <div id="tab-python" class="space-y-6 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <h3 class="text-lg font-bold text-white mb-2">Python Integration (httpx / requests)</h3>
+      <pre class="bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-xs text-slate-300 overflow-x-auto"><code>import time
+import httpx
+
+API_KEY = "obliq_live_..."
+BASE_URL = "https://api.obliq.in"
+
+headers = {"Authorization": f"Bearer {API_KEY}"}
+
+with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
+    # 1. Submit Document
+    with open("document.pdf", "rb") as f:
+        resp = client.post("/v1/jobs", headers=headers, files={"file": ("document.pdf", f, "application/pdf")})
+    resp.raise_for_status()
+    job_id = resp.json()["id"]
+
+    # 2. Poll for Completion
+    while True:
+        status_resp = client.get(f"/v1/jobs/{job_id}", headers=headers)
+        status = status_resp.json().get("status")
+        if status in ("succeeded", "failed"):
+            break
+        time.sleep(1.0)
+
+    # 3. Retrieve Structured Result
+    result_resp = client.get(f"/v1/jobs/{job_id}/result", headers=headers)
+    result = result_resp.json()
+    print(f"Extracted {result['page_count']} pages in {result.get('processing_time_ms')}ms")</code></pre>
+    </div>
+  </div>
+
+  <!-- cURL Section -->
+  <div id="tab-curl" class="space-y-6 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <h3 class="text-lg font-bold text-white mb-2">cURL Commands</h3>
+      <div class="space-y-4">
+        <div>
+          <span class="text-xs text-slate-400 font-medium">1. Submit Document:</span>
+          <pre class="bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-indigo-300 mt-1 overflow-x-auto"><code>curl -X POST https://api.obliq.in/v1/jobs \
+  -H "Authorization: Bearer $OBLIQ_API_KEY" \
+  -F "file=@invoice.pdf;type=application/pdf"</code></pre>
+        </div>
+        <div>
+          <span class="text-xs text-slate-400 font-medium">2. Check Status:</span>
+          <pre class="bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-indigo-300 mt-1 overflow-x-auto"><code>curl https://api.obliq.in/v1/jobs/&lt;job_id&gt; \
+  -H "Authorization: Bearer $OBLIQ_API_KEY"</code></pre>
+        </div>
+        <div>
+          <span class="text-xs text-slate-400 font-medium">3. Fetch Extracted Result:</span>
+          <pre class="bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-indigo-300 mt-1 overflow-x-auto"><code>curl https://api.obliq.in/v1/jobs/&lt;job_id&gt;/result \
+  -H "Authorization: Bearer $OBLIQ_API_KEY"</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function switchTab(lang) {
+    ['ts', 'python', 'curl'].forEach(t => {
+      document.getElementById('tab-' + t).classList.add('hidden');
+      const btn = document.getElementById('tab-btn-' + t);
+      btn.className = 'px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition';
+    });
+    document.getElementById('tab-' + lang).classList.remove('hidden');
+    const activeBtn = document.getElementById('tab-btn-' + lang);
+    activeBtn.className = 'px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white transition';
+  }
+</script>
+{% endblock %}

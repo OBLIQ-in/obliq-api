@@ -1,7 +1,11 @@
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, RedirectResponse
+from pathlib import Path
 
-from obliq_api.api.ui.templates import DOCS_PAGE_HTML, KEYS_PAGE_HTML, USAGE_PAGE_HTML
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+
+TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates"
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard-ui"])
 
@@ -13,18 +17,18 @@ async def dashboard_index() -> RedirectResponse:
 
 
 @router.get("/keys", response_class=HTMLResponse)
-async def keys_page() -> HTMLResponse:
+async def keys_page(request: Request) -> HTMLResponse:
     """API Key management developer portal."""
-    return HTMLResponse(content=KEYS_PAGE_HTML)
+    return templates.TemplateResponse(request=request, name="keys.html")
 
 
 @router.get("/usage", response_class=HTMLResponse)
-async def usage_page() -> HTMLResponse:
+async def usage_page(request: Request) -> HTMLResponse:
     """Live usage, latency, and telemetry dashboard."""
-    return HTMLResponse(content=USAGE_PAGE_HTML)
+    return templates.TemplateResponse(request=request, name="usage.html")
 
 
 @router.get("/docs", response_class=HTMLResponse)
-async def docs_page() -> HTMLResponse:
+async def docs_page(request: Request) -> HTMLResponse:
     """Interactive client SDK documentation and code samples."""
-    return HTMLResponse(content=DOCS_PAGE_HTML)
+    return templates.TemplateResponse(request=request, name="docs.html")
