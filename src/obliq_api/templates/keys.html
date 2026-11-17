@@ -1,437 +1,159 @@
 {% extends "base.html" %}
-
 {% block title %}API Keys{% endblock %}
 
 {% block content %}
-<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  
-  <!-- Header section -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#1b1e23] gap-4">
+<main>
+<div class="wrap">
+  <div class="head">
     <div>
-      <div class="flex items-center gap-2">
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">API Keys</h1>
-        <span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Production</span>
-      </div>
-      <p class="text-neutral-400 text-sm mt-1">Manage API credentials, configure fine-grained scopes, and rotate production secrets.</p>
+      <h1>API Keys<span class="tag">Production</span></h1>
+      <p class="sub">Manage API credentials, configure fine-grained scopes, and rotate production secrets.</p>
     </div>
-    <div>
-      <button onclick="openCreateModal()" class="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold text-black bg-emerald-400 hover:bg-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 shadow-lg shadow-emerald-500/20 transition-all duration-200">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-        </svg>
-        Generate New Key
-      </button>
-    </div>
+    <button onclick="openCreateModal()" class="btn btn-primary">+ Generate New Key</button>
   </div>
 
-  <!-- Gotics-Style KPI Cards Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
-    
-    <!-- KPI 1: Active Keys -->
-    <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition-all duration-200 group">
-      <div class="flex items-center justify-between">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-          </svg>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-medium flex items-center gap-1">
-          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Live
-        </span>
-      </div>
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Active Keys</div>
-        <div id="stat-active" class="text-3xl font-extrabold text-white mt-1">--</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-[#17191d] flex items-center text-xs text-neutral-400">
-        <span class="text-emerald-400 font-medium flex items-center mr-1.5">
-          <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-          </svg> 100%
-        </span>
-        <span>Authorized traffic</span>
-      </div>
-    </div>
-
-    <!-- KPI 2: Expiring / Grace Period -->
-    <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition-all duration-200 group">
-      <div class="flex items-center justify-between">
-        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-medium">Rotation</span>
-      </div>
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Expiring / Grace Period</div>
-        <div id="stat-expiring" class="text-3xl font-extrabold text-amber-400 mt-1">--</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-[#17191d] flex items-center text-xs text-neutral-400">
-        <span>Zero-downtime sunset window</span>
-      </div>
-    </div>
-
-    <!-- KPI 3: Total Generated -->
-    <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition-all duration-200 group">
-      <div class="flex items-center justify-between">
-        <div class="w-10 h-10 rounded-xl bg-neutral-800/80 border border-neutral-700/50 text-neutral-300 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7zm0 5h16" />
-          </svg>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300 font-medium">History</span>
-      </div>
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Generated</div>
-        <div id="stat-total" class="text-3xl font-extrabold text-white mt-1">--</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-[#17191d] flex items-center text-xs text-neutral-400">
-        <span>Lifecycle credentials recorded</span>
-      </div>
-    </div>
-
-    <!-- KPI 4: Security Scopes -->
-    <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition-all duration-200 group">
-      <div class="flex items-center justify-between">
-        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </div>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-medium">RBAC</span>
-      </div>
-      <div class="mt-3">
-        <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Security Scopes</div>
-        <div class="text-3xl font-extrabold text-white mt-1">ocr:*</div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-[#17191d] flex items-center text-xs text-neutral-400">
-        <span>Least-privilege enforcements</span>
-      </div>
-    </div>
-
+  <div class="kpis">
+    <div class="kpi"><div class="k">Active keys</div><div id="stat-active" class="v">--</div><div class="n">Authorized traffic</div></div>
+    <div class="kpi"><div class="k">Expiring / grace period</div><div id="stat-expiring" class="v" style="color:var(--warn)">--</div><div class="n">Zero-downtime sunset window</div></div>
+    <div class="kpi"><div class="k">Total generated</div><div id="stat-total" class="v">--</div><div class="n">Lifecycle credentials recorded</div></div>
+    <div class="kpi"><div class="k">Security scopes</div><div class="v mono" style="font-size:26px;padding:3px 0">ocr:*</div><div class="n">Least-privilege enforcement</div></div>
   </div>
 
-  <!-- Keys Table Card -->
-  <div class="bg-[#0d0e11] border border-[#1f2227] rounded-2xl overflow-hidden shadow-xl my-6">
-    <div class="px-6 py-4 border-b border-[#1f2227] flex items-center justify-between bg-[#0a0b0e]">
-      <div class="flex items-center space-x-3">
-        <h3 class="font-bold text-white text-base">Configured API Keys</h3>
-        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-neutral-800 text-neutral-300 border border-neutral-700/60" id="keys-count-badge">0 keys</span>
-      </div>
-      <button onclick="loadKeys()" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
-        <svg id="refresh-spinner" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Refresh
-      </button>
+  <div class="panel">
+    <div class="panel-h">
+      <div style="display:flex;align-items:center;gap:10px"><h3>Configured API keys</h3><span class="badge" id="keys-count-badge">0 keys</span></div>
+      <button onclick="loadKeys()" class="btn btn-sm">Refresh</button>
     </div>
-
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-sm text-neutral-300">
-        <thead class="bg-[#08090b] text-neutral-400 text-[11px] uppercase tracking-wider font-semibold border-b border-[#1f2227]">
-          <tr>
-            <th class="px-6 py-3.5">Key Name</th>
-            <th class="px-6 py-3.5">Key Prefix</th>
-            <th class="px-6 py-3.5">Permissions & Scopes</th>
-            <th class="px-6 py-3.5">Status</th>
-            <th class="px-6 py-3.5">Expires</th>
-            <th class="px-6 py-3.5">Last Used</th>
-            <th class="px-6 py-3.5 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="keys-tbody" class="divide-y divide-[#17191d] font-mono text-xs">
-          <tr>
-            <td colspan="7" class="px-6 py-12 text-center text-neutral-400 font-sans">
-              <div class="flex flex-col items-center justify-center space-y-2">
-                <svg class="animate-spin h-5 w-5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Loading keys...</span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Name</th><th>Key prefix</th><th>Scopes</th><th>Status</th><th>Expires</th><th>Last used</th><th style="text-align:right">Actions</th></tr></thead>
+        <tbody id="keys-tbody"><tr><td colspan="7" style="text-align:center;padding:48px;color:var(--mute)">Loading keys...</td></tr></tbody>
       </table>
     </div>
   </div>
+</div>
 </main>
 
-<!-- Create Key Modal -->
-<div id="modal-create" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-[#0e1013] border border-[#23272e] rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-    <div class="flex items-center justify-between pb-3 border-b border-[#1f2227]">
-      <div>
-        <h3 class="text-lg font-bold text-white">Generate API Key</h3>
-        <p class="text-neutral-400 text-xs mt-0.5">Specify an identifier, permissions, and optional expiration.</p>
-      </div>
-      <button onclick="closeModal('modal-create')" class="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-800">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-
-    <div class="mt-5 space-y-4 font-sans text-sm">
-      <div>
-        <label class="block text-xs font-semibold text-neutral-300 mb-1.5">Key Name / Description</label>
-        <input type="text" id="input-key-name" placeholder="e.g. Production Next.js Microservice" class="w-full px-3.5 py-2.5 bg-[#08090b] border border-[#23272e] rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 text-sm transition">
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-neutral-300 mb-2">Scopes & Permissions</label>
-        <div class="space-y-2.5 bg-[#08090b] p-3 rounded-xl border border-[#1f2227]">
-          <label class="flex items-start space-x-2.5 text-xs text-neutral-300 cursor-pointer">
-            <input type="checkbox" id="scope-ocr-write" checked class="mt-0.5 rounded border-neutral-700 bg-black text-emerald-500 focus:ring-emerald-500/30">
-            <div>
-              <span class="font-mono text-emerald-400 font-semibold">ocr:write</span>
-              <p class="text-neutral-400 text-[11px] mt-0.5">Enqueue & upload documents for OCR processing</p>
-            </div>
-          </label>
-          <label class="flex items-start space-x-2.5 text-xs text-neutral-300 cursor-pointer">
-            <input type="checkbox" id="scope-ocr-read" checked class="mt-0.5 rounded border-neutral-700 bg-black text-emerald-500 focus:ring-emerald-500/30">
-            <div>
-              <span class="font-mono text-emerald-400 font-semibold">ocr:read</span>
-              <p class="text-neutral-400 text-[11px] mt-0.5">Poll job status and retrieve extracted results</p>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-neutral-300 mb-1.5">Expiration Presets</label>
-        <select id="select-expiry" class="w-full px-3.5 py-2.5 bg-[#08090b] border border-[#23272e] rounded-xl text-white focus:outline-none focus:border-emerald-500 text-sm">
-          <option value="90">90 Days (Recommended for Security)</option>
-          <option value="30">30 Days</option>
-          <option value="365">1 Year</option>
-          <option value="">Never Expires</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="mt-6 pt-4 border-t border-[#1f2227] flex justify-end space-x-3">
-      <button onclick="closeModal('modal-create')" class="px-4 py-2 rounded-xl border border-[#23272e] text-neutral-300 hover:bg-[#181a1f] text-sm font-medium transition">Cancel</button>
-      <button onclick="submitCreateKey()" id="btn-submit-create" class="px-5 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-semibold text-sm shadow-lg shadow-emerald-500/20 transition">Create Key</button>
-    </div>
+<!-- Create -->
+<div id="modal-create" class="modal hidden"><div class="dlg">
+  <h3>Generate API key</h3><p class="d">Choose a name, permissions, and an optional expiry.</p>
+  <div style="margin-top:20px;display:grid;gap:16px">
+    <div><label class="l">Key name</label><input type="text" id="input-key-name" placeholder="e.g. Production Next.js microservice"></div>
+    <div><label class="l">Scopes</label>
+      <div class="code" style="padding:12px;display:grid;gap:12px">
+        <label style="display:flex;gap:10px;cursor:pointer"><input type="checkbox" id="scope-ocr-write" checked><span><code style="color:var(--acc);font-size:12px">ocr:write</code><br><small style="color:var(--mute)">Upload documents and enqueue OCR jobs</small></span></label>
+        <label style="display:flex;gap:10px;cursor:pointer"><input type="checkbox" id="scope-ocr-read" checked><span><code style="color:var(--acc);font-size:12px">ocr:read</code><br><small style="color:var(--mute)">Poll job status and fetch extracted results</small></span></label>
+      </div></div>
+    <div><label class="l">Expiration</label>
+      <select id="select-expiry"><option value="90">90 days (recommended)</option><option value="30">30 days</option><option value="365">1 year</option><option value="">Never expires</option></select></div>
   </div>
-</div>
+  <div class="foot"><button onclick="closeModal('modal-create')" class="btn">Cancel</button><button onclick="submitCreateKey()" id="btn-submit-create" class="btn btn-primary">Create key</button></div>
+</div></div>
 
-<!-- Reveal Secret Key Modal (Copy-Once) -->
-<div id="modal-reveal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-[#0e1013] border border-[#23272e] rounded-2xl max-w-lg w-full p-6 shadow-2xl">
-    <div class="flex items-center space-x-3 text-emerald-400">
-      <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </div>
-      <div>
-        <h3 class="text-lg font-bold text-white">API Key Generated</h3>
-        <p class="text-neutral-400 text-xs mt-0.5">Copy and secure your secret now. <strong>It will not be displayed again!</strong></p>
-      </div>
-    </div>
-
-    <div class="mt-5 p-3.5 bg-[#08090b] border border-[#23272e] rounded-xl relative group">
-      <div id="reveal-key-text" class="font-mono text-sm text-emerald-300 break-all select-all pr-14 leading-relaxed"></div>
-      <button onclick="copyRevealedKey()" class="absolute right-2.5 top-2.5 px-2.5 py-1.5 bg-[#181a1f] hover:bg-emerald-500 hover:text-black text-neutral-300 border border-[#2c313a] rounded-lg text-xs font-medium flex items-center transition" title="Copy to Clipboard">
-        <svg id="copy-icon" class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-        </svg>
-        <span id="copy-label">Copy</span>
-      </button>
-    </div>
-
-    <div class="mt-4 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300 flex items-start space-x-2.5">
-      <svg class="w-4 h-4 mt-0.5 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      <span>Store this secret securely in environment variables (e.g. <code>OBLIQ_API_KEY</code>). Never commit raw API keys into Git repositories.</span>
-    </div>
-
-    <div class="mt-6 flex justify-end">
-      <button onclick="closeModal('modal-reveal'); loadKeys();" class="px-5 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-black font-semibold text-sm shadow-lg shadow-emerald-500/20 transition">Done, I Saved It</button>
-    </div>
+<!-- Reveal -->
+<div id="modal-reveal" class="modal hidden"><div class="dlg" style="max-width:520px">
+  <h3>API key generated</h3><p class="d">Copy and store your secret now. <strong style="color:#fff">It will not be shown again.</strong></p>
+  <div class="code" style="margin-top:18px;padding:14px;position:relative">
+    <div id="reveal-key-text" class="mono" style="font-size:13px;color:var(--acc);word-break:break-all;padding-right:70px;user-select:all"></div>
+    <button onclick="copyRevealedKey()" class="btn btn-sm" style="position:absolute;right:10px;top:10px"><span id="copy-label">Copy</span></button>
   </div>
-</div>
+  <div class="note" style="margin-top:14px">Store this secret in an environment variable such as <code>OBLIQ_API_KEY</code>. Never commit raw keys to Git.</div>
+  <div class="foot" style="border:0;padding:0"><button onclick="closeModal('modal-reveal'); loadKeys();" class="btn btn-primary">Done, I saved it</button></div>
+</div></div>
 
-<!-- Rotate Modal -->
-<div id="modal-rotate" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-[#0e1013] border border-[#23272e] rounded-2xl max-w-md w-full p-6 shadow-2xl">
-    <div class="flex items-center space-x-3 text-amber-400 mb-2">
-      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-      </div>
-      <div>
-        <h3 class="text-lg font-bold text-white">Rotate API Key</h3>
-        <p class="text-neutral-400 text-xs mt-0.5">Generate a replacement key with a zero-downtime sunset window.</p>
-      </div>
-    </div>
-    <input type="hidden" id="rotate-key-id">
-
-    <div class="mt-4 space-y-3 font-sans text-sm">
-      <label class="block text-xs font-semibold text-neutral-300">Grace Period (Overlap Window)</label>
-      <select id="select-grace" class="w-full px-3.5 py-2.5 bg-[#08090b] border border-[#23272e] rounded-xl text-white text-sm focus:outline-none focus:border-amber-500">
-        <option value="24">24 Hours (Recommended for Zero Downtime)</option>
-        <option value="48">48 Hours</option>
-        <option value="1">1 Hour (Quick Switch)</option>
-        <option value="0">Immediate Revocation (0h)</option>
-      </select>
-      <p class="text-xs text-neutral-400">The retiring key continues to authenticate requests until the grace period expires.</p>
-    </div>
-
-    <div class="mt-6 pt-4 border-t border-[#1f2227] flex justify-end space-x-3">
-      <button onclick="closeModal('modal-rotate')" class="px-4 py-2 rounded-xl border border-[#23272e] text-neutral-300 hover:bg-[#181a1f] text-sm font-medium transition">Cancel</button>
-      <button onclick="submitRotateKey()" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm shadow-lg shadow-amber-500/20 transition">Confirm Rotation</button>
-    </div>
-  </div>
-</div>
+<!-- Rotate -->
+<div id="modal-rotate" class="modal hidden"><div class="dlg">
+  <h3>Rotate API key</h3><p class="d">Issue a replacement key with a zero-downtime overlap window.</p>
+  <input type="hidden" id="rotate-key-id">
+  <div style="margin-top:20px"><label class="l">Grace period</label>
+    <select id="select-grace"><option value="24">24 hours (recommended)</option><option value="48">48 hours</option><option value="1">1 hour</option><option value="0">Immediate revocation</option></select>
+    <p style="font-size:12px;color:var(--mute);margin-top:8px">The retiring key keeps working until the grace period ends.</p></div>
+  <div class="foot"><button onclick="closeModal('modal-rotate')" class="btn">Cancel</button><button onclick="submitRotateKey()" class="btn btn-warn">Confirm rotation</button></div>
+</div></div>
 {% endblock %}
 
 {% block scripts %}
 <script>
   let currentKeys = [];
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
-  }
-
-  function openCreateModal() {
-    document.getElementById('input-key-name').value = '';
-    document.getElementById('modal-create').classList.remove('hidden');
-  }
-
-  function openRotateModal(keyId) {
-    document.getElementById('rotate-key-id').value = keyId;
-    document.getElementById('modal-rotate').classList.remove('hidden');
-  }
-
-  function copyRevealedKey() {
-    const text = document.getElementById('reveal-key-text').innerText;
-    navigator.clipboard.writeText(text).then(() => {
-      document.getElementById('copy-label').innerText = 'Copied!';
-      setTimeout(() => {
-        document.getElementById('copy-label').innerText = 'Copy';
-      }, 2000);
+  function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+  function openCreateModal(){ document.getElementById('input-key-name').value=''; document.getElementById('modal-create').classList.remove('hidden'); }
+  function openRotateModal(id){ document.getElementById('rotate-key-id').value=id; document.getElementById('modal-rotate').classList.remove('hidden'); }
+  function copyRevealedKey(){
+    navigator.clipboard.writeText(document.getElementById('reveal-key-text').innerText).then(()=>{
+      const l=document.getElementById('copy-label'); l.innerText='Copied!'; setTimeout(()=>l.innerText='Copy',2000);
     });
   }
 
-  async function loadKeys() {
-    const tbody = document.getElementById('keys-tbody');
-    const badge = document.getElementById('keys-count-badge');
-    try {
-      const resp = await apiFetch('/v1/keys');
-      const data = await resp.json();
-      currentKeys = data.keys || [];
-      if (badge) badge.innerText = `${currentKeys.length} key${currentKeys.length === 1 ? '' : 's'}`;
+  async function loadKeys(){
+    const tbody=document.getElementById('keys-tbody'), badge=document.getElementById('keys-count-badge');
+    try{
+      const data=await (await apiFetch('/v1/keys')).json();
+      currentKeys=data.keys||[];
+      if(badge) badge.innerText=`${currentKeys.length} key${currentKeys.length===1?'':'s'}`;
       renderKeysTable();
-    } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-rose-400 font-sans">${err.message}<br><button onclick="promptAuthToken()" class="mt-2 text-xs text-emerald-400 underline">Set or update Auth Bearer token</button></td></tr>`;
+    }catch(err){
+      tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--err)">${esc(err.message)}<br><button onclick="promptAuthToken()" class="btn btn-sm" style="margin-top:12px">Set or update auth token</button></td></tr>`;
     }
   }
 
-  function renderKeysTable() {
-    const tbody = document.getElementById('keys-tbody');
-    let active = 0, expiring = 0, total = currentKeys.length;
-
-    if (total === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-neutral-400 font-sans">No API keys found. Click "Generate New Key" to create your first credential.</td></tr>`;
-      document.getElementById('stat-active').innerText = '0';
-      document.getElementById('stat-expiring').innerText = '0';
-      document.getElementById('stat-total').innerText = '0';
+  function renderKeysTable(){
+    const tbody=document.getElementById('keys-tbody');
+    let active=0, expiring=0; const total=currentKeys.length;
+    if(total===0){
+      tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--mute)">No API keys yet. Select "Generate new key" to create your first credential.</td></tr>`;
+      ['stat-active','stat-expiring','stat-total'].forEach(i=>document.getElementById(i).innerText='0');
       return;
     }
-
-    tbody.innerHTML = currentKeys.map(k => {
-      if (k.status === 'active') active++;
-      if (k.status === 'expiring') expiring++;
-
-      const statusBadge = k.status === 'active' 
-        ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active</span>'
-        : k.status === 'expiring'
-        ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Expiring</span>'
-        : '<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-neutral-800 text-neutral-400 border border-neutral-700">Revoked</span>';
-
-      const scopesHtml = (k.scopes || []).map(s => `<span class="px-1.5 py-0.5 rounded bg-[#15171b] text-neutral-300 border border-[#23262d] mr-1 text-[11px]">${s}</span>`).join('');
-      const expiresFormatted = k.expires_at ? new Date(k.expires_at).toLocaleDateString() : 'Never';
-      const lastUsedFormatted = k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : 'Never';
-
-      const actions = k.status !== 'revoked' ? `
-        <button onclick="openRotateModal('${k.id}')" class="text-xs px-2.5 py-1 rounded-lg bg-[#181a1f] hover:bg-[#20232a] text-neutral-200 border border-[#292c34] transition mr-1 font-sans">Rotate</button>
-        <button onclick="revokeKey('${k.id}')" class="text-xs px-2.5 py-1 rounded-lg bg-rose-950/20 hover:bg-rose-900/40 text-rose-400 border border-rose-800/40 transition font-sans">Revoke</button>
-      ` : '<span class="text-neutral-500 text-xs font-sans">None</span>';
-
-      return `
-        <tr class="hover:bg-[#121418]/60 transition">
-          <td class="px-6 py-4 font-sans font-medium text-white">${k.name}</td>
-          <td class="px-6 py-4 text-emerald-400 font-mono font-medium">${k.key_prefix}...</td>
-          <td class="px-6 py-4">${scopesHtml || '<span class="text-neutral-500">None</span>'}</td>
-          <td class="px-6 py-4">${statusBadge}</td>
-          <td class="px-6 py-4 text-neutral-400 font-sans">${expiresFormatted}</td>
-          <td class="px-6 py-4 text-neutral-400 font-sans">${lastUsedFormatted}</td>
-          <td class="px-6 py-4 text-right font-sans">${actions}</td>
-        </tr>
-      `;
+    tbody.innerHTML=currentKeys.map(k=>{
+      if(k.status==='active') active++;
+      if(k.status==='expiring') expiring++;
+      const status = k.status==='active' ? '<span class="badge b-ok">Active</span>'
+        : k.status==='expiring' ? '<span class="badge b-warn">Expiring</span>' : '<span class="badge">Revoked</span>';
+      const scopes=(k.scopes||[]).map(s=>`<span class="sc">${esc(s)}</span>`).join('') || '<span style="color:var(--dim)">None</span>';
+      const exp=k.expires_at?new Date(k.expires_at).toLocaleDateString():'Never';
+      const used=k.last_used_at?new Date(k.last_used_at).toLocaleDateString():'Never';
+      const actions=k.status!=='revoked'
+        ? `<button onclick="openRotateModal('${esc(k.id)}')" class="btn btn-sm">Rotate</button> <button onclick="revokeKey('${esc(k.id)}')" class="btn btn-sm btn-danger">Revoke</button>`
+        : '<span style="color:var(--dim)">None</span>';
+      return `<tr><td style="font-weight:500">${esc(k.name)}</td><td class="mono" style="color:var(--acc);font-size:12px">${esc(k.key_prefix)}...</td><td>${scopes}</td><td>${status}</td><td style="color:var(--mute)">${exp}</td><td style="color:var(--mute)">${used}</td><td style="text-align:right;white-space:nowrap">${actions}</td></tr>`;
     }).join('');
-
-    document.getElementById('stat-active').innerText = active;
-    document.getElementById('stat-expiring').innerText = expiring;
-    document.getElementById('stat-total').innerText = total;
+    document.getElementById('stat-active').innerText=active;
+    document.getElementById('stat-expiring').innerText=expiring;
+    document.getElementById('stat-total').innerText=total;
   }
 
-  async function submitCreateKey() {
-    const name = document.getElementById('input-key-name').value.trim();
-    if (!name) { alert('Please enter a key name.'); return; }
-
-    const scopes = [];
-    if (document.getElementById('scope-ocr-write').checked) scopes.push('ocr:write');
-    if (document.getElementById('scope-ocr-read').checked) scopes.push('ocr:read');
-
-    const expiryVal = document.getElementById('select-expiry').value;
-    const expiresInDays = expiryVal ? parseInt(expiryVal, 10) : null;
-
-    try {
-      const resp = await apiFetch('/v1/keys', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, scopes, expires_in_days: expiresInDays })
-      });
-      const data = await resp.json();
+  async function submitCreateKey(){
+    const name=document.getElementById('input-key-name').value.trim();
+    if(!name){ alert('Please enter a key name.'); return; }
+    const scopes=[];
+    if(document.getElementById('scope-ocr-write').checked) scopes.push('ocr:write');
+    if(document.getElementById('scope-ocr-read').checked) scopes.push('ocr:read');
+    const ev=document.getElementById('select-expiry').value;
+    try{
+      const data=await (await apiFetch('/v1/keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,scopes,expires_in_days:ev?parseInt(ev,10):null})})).json();
       closeModal('modal-create');
-      document.getElementById('reveal-key-text').innerText = data.key;
+      document.getElementById('reveal-key-text').innerText=data.key;
       document.getElementById('modal-reveal').classList.remove('hidden');
-    } catch (err) {
-      alert('Error creating key: ' + err.message);
-    }
+    }catch(err){ alert('Error creating key: '+err.message); }
   }
 
-  async function submitRotateKey() {
-    const keyId = document.getElementById('rotate-key-id').value;
-    const grace = parseInt(document.getElementById('select-grace').value, 10);
-
-    try {
-      const resp = await apiFetch(`/v1/keys/${keyId}/rotate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ grace_period_hours: grace })
-      });
-      const data = await resp.json();
+  async function submitRotateKey(){
+    const id=document.getElementById('rotate-key-id').value;
+    const grace=parseInt(document.getElementById('select-grace').value,10);
+    try{
+      const data=await (await apiFetch(`/v1/keys/${id}/rotate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({grace_period_hours:grace})})).json();
       closeModal('modal-rotate');
-      document.getElementById('reveal-key-text').innerText = data.key;
+      document.getElementById('reveal-key-text').innerText=data.key;
       document.getElementById('modal-reveal').classList.remove('hidden');
-    } catch (err) {
-      alert('Error rotating key: ' + err.message);
-    }
+    }catch(err){ alert('Error rotating key: '+err.message); }
   }
 
-  async function revokeKey(keyId) {
-    if (!confirm('Are you sure you want to permanently revoke this API key? Applications using it will immediately fail to authenticate.')) return;
-    try {
-      await apiFetch(`/v1/keys/${keyId}/revoke`, { method: 'POST' });
-      loadKeys();
-    } catch (err) {
-      alert('Error revoking key: ' + err.message);
-    }
+  async function revokeKey(id){
+    if(!confirm('Permanently revoke this API key? Applications using it will immediately fail to authenticate.')) return;
+    try{ await apiFetch(`/v1/keys/${id}/revoke`,{method:'POST'}); loadKeys(); }
+    catch(err){ alert('Error revoking key: '+err.message); }
   }
 
   document.addEventListener('DOMContentLoaded', loadKeys);

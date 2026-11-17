@@ -1,132 +1,68 @@
 {% extends "base.html" %}
-
 {% block title %}Client SDK Documentation{% endblock %}
 
+{% block extra_head %}
+<style>
+.prompt{min-width:300px;max-width:380px;flex:1}
+.prompt-h{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);margin-bottom:8px}
+.prompt-v{background:#0e0e0e;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--acc);word-break:break-all;user-select:all}
+.step{display:flex;align-items:center;gap:10px}
+.num{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--acc);border:1px solid rgba(62,207,142,.35);background:var(--accbg)}
+.stack{display:grid;gap:16px}
+.cap{font-size:12px;font-weight:600;color:var(--mute);margin-bottom:6px}
+.cmd{background:#0e0e0e;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--acc);display:flex;justify-content:space-between;align-items:center;gap:12px}
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  
-  <!-- Header with Neon-style Agent Prompt Box -->
-  <div class="flex flex-col lg:flex-row lg:items-center justify-between pb-6 border-b border-[#1b1e23] gap-6">
-    <div class="max-w-2xl">
-      <div class="flex items-center gap-2">
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">API Client SDKs & Code Examples</h1>
-        <span class="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">v1.0</span>
-      </div>
-      <p class="text-neutral-400 text-sm mt-1.5 leading-relaxed">Official libraries and quickstarts to integrate Obliq OCR into your frontend applications, backends, and serverless jobs.</p>
+<main>
+<div class="wrap">
+  <div class="head">
+    <div>
+      <h1>API Client SDKs &amp; Documentation<span class="tag">v1.0</span></h1>
+      <p class="sub">Learn how to get up and running with OBLIQ-in OCR through SDKs, quickstarts, and API references.</p>
     </div>
-
-    <!-- Neon Docs Image 1: Agent Prompt / CLI Copy Box -->
-    <div class="bg-[#0d0e11] border border-[#1f2227] rounded-xl p-3 sm:p-4 min-w-[320px] lg:max-w-sm">
-      <div class="flex items-center justify-between text-xs mb-2">
-        <span class="text-neutral-400 font-mono text-[11px] flex items-center gap-1.5">
-          <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-          Agent prompt: CLI
-        </span>
-        <button onclick="copyAgentPrompt()" class="text-neutral-400 hover:text-white px-2 py-0.5 rounded bg-[#16181d] border border-[#23262d] text-[11px] font-medium flex items-center gap-1 transition">
-          <svg id="prompt-copy-icon" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-          <span id="prompt-copy-text">Copy prompt</span>
-        </button>
-      </div>
-      <div class="bg-[#08090b] p-2.5 rounded-lg border border-[#1a1c22] font-mono text-xs text-emerald-400 break-all select-all leading-normal" id="agent-prompt-val">
-        pnpm add @obliq/client && export OBLIQ_API_KEY=...
-      </div>
+    <div class="card prompt">
+      <div class="prompt-h"><span class="mono"><span class="dot"></span>&nbsp; Agent prompt: CLI</span>
+        <button onclick="copyAgentPrompt()" class="btn btn-sm"><span id="prompt-copy-text">Copy prompt</span></button></div>
+      <div class="prompt-v mono" id="agent-prompt-val">pnpm add @obliq/client && export OBLIQ_API_KEY=...</div>
     </div>
   </div>
 
-  <!-- Connect a framework cards (from Neon Image 1 & Supabase Image 2) -->
-  <div class="my-6">
-    <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Supported Languages & Stacks</div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-      
-      <button onclick="switchTab('ts')" class="framework-card p-3.5 rounded-xl bg-[#0d0e11] border border-emerald-500/40 text-left hover:border-emerald-500/60 transition group" id="fw-ts">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-mono font-bold text-xs">TS</div>
-        <div class="text-white font-semibold text-xs mt-2 group-hover:text-emerald-400 transition">TypeScript</div>
-        <div class="text-[11px] text-neutral-400">Next.js / Node.js</div>
-      </button>
+  <!-- Languages -->
+  <section class="section">
+    <div><h2>Connect a language</h2><p>Pick your stack to see installation steps and working examples.</p></div>
+    <div class="items">
+      <button onclick="switchTab('ts')" class="item sel" id="fw-ts"><span class="ico">TS</span><span>TypeScript<small>Next.js / Node.js</small></span></button>
+      <button onclick="switchTab('python')" class="item" id="fw-python"><span class="ico" style="color:var(--blue)">PY</span><span>Python<small>FastAPI / httpx</small></span></button>
+      <button onclick="switchTab('curl')" class="item" id="fw-curl"><span class="ico" style="color:var(--warn)">&gt;_</span><span>cURL / CLI<small>Shell / CI pipelines</small></span></button>
+      <button onclick="switchTab('ts')" class="item"><span class="ico" style="color:var(--violet)">JS</span><span>Browser / Web<small>Isomorphic</small></span></button>
+      <a href="/docs" target="_blank" rel="noopener" class="item"><span class="ico" style="color:#4cc9d8">API</span><span>OpenAPI ↗<small>Swagger / Redoc</small></span></a>
+    </div>
+  </section>
 
-      <button onclick="switchTab('python')" class="framework-card p-3.5 rounded-xl bg-[#0d0e11] border border-[#1f2227] text-left hover:border-[#2f343e] transition group" id="fw-python">
-        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center font-mono font-bold text-xs">PY</div>
-        <div class="text-white font-semibold text-xs mt-2 group-hover:text-blue-400 transition">Python</div>
-        <div class="text-[11px] text-neutral-400">FastAPI / httpx</div>
-      </button>
+  <!-- Quickstart -->
+  <section class="section">
+    <div><h2>Quickstart</h2><p>From install to extracted pages in three steps.</p></div>
+    <div>
+      <div class="seg" style="margin-bottom:18px">
+        <button onclick="switchTab('ts')" id="tab-btn-ts" class="on">TypeScript / Next.js</button>
+        <button onclick="switchTab('python')" id="tab-btn-python">Python</button>
+        <button onclick="switchTab('curl')" id="tab-btn-curl">cURL / CLI</button>
+      </div>
 
-      <button onclick="switchTab('curl')" class="framework-card p-3.5 rounded-xl bg-[#0d0e11] border border-[#1f2227] text-left hover:border-[#2f343e] transition group" id="fw-curl">
-        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center font-mono font-bold text-xs">&gt;_</div>
-        <div class="text-white font-semibold text-xs mt-2 group-hover:text-amber-400 transition">cURL / CLI</div>
-        <div class="text-[11px] text-neutral-400">Shell / CI Pipelines</div>
-      </button>
-
-      <button onclick="switchTab('ts')" class="framework-card p-3.5 rounded-xl bg-[#0d0e11] border border-[#1f2227] text-left hover:border-[#2f343e] transition group opacity-75">
-        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-mono font-bold text-xs">JS</div>
-        <div class="text-white font-semibold text-xs mt-2">Browser / Web</div>
-        <div class="text-[11px] text-neutral-400">Pure Isomorphic</div>
-      </button>
-
-      <a href="/docs" target="_blank" class="p-3.5 rounded-xl bg-[#0d0e11] border border-[#1f2227] text-left hover:border-[#2f343e] transition group flex flex-col justify-between">
-        <div>
-          <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center font-mono font-bold text-xs">API</div>
-          <div class="text-white font-semibold text-xs mt-2 group-hover:text-cyan-400 transition flex items-center">OpenAPI ↗</div>
+      <div id="tab-ts" class="stack">
+        <div class="card">
+          <div class="step"><span class="num">1</span><h3 style="margin:0">Install the client</h3></div>
+          <p style="margin:8px 0 12px">Add the official isomorphic client library with pnpm, npm, or yarn.</p>
+          <div class="cmd mono"><span>pnpm add @obliq/client</span><button onclick="copySnippet('pnpm add @obliq/client', this)" class="btn btn-sm">Copy</button></div>
         </div>
-        <div class="text-[11px] text-neutral-400">Swagger / Redoc</div>
-      </a>
-
-    </div>
-  </div>
-
-  <!-- Language Switcher Tabs -->
-  <div class="flex space-x-2 my-6 border-b border-[#1b1e23] pb-3">
-    <button onclick="switchTab('ts')" id="tab-btn-ts" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 transition">
-      TypeScript / Next.js
-    </button>
-    <button onclick="switchTab('python')" id="tab-btn-python" class="px-4 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white hover:bg-[#15171b] transition">
-      Python
-    </button>
-    <button onclick="switchTab('curl')" id="tab-btn-curl" class="px-4 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white hover:bg-[#15171b] transition">
-      cURL / CLI
-    </button>
-  </div>
-
-  <!-- TypeScript Section -->
-  <div id="tab-ts" class="space-y-6">
-    
-    <!-- Step 1: Install -->
-    <div class="bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs">1</span>
-          Installation
-        </h3>
-        <span class="text-xs text-neutral-400 font-mono">pnpm / npm / yarn</span>
-      </div>
-      <p class="text-neutral-400 text-sm mb-3">Install the official isomorphic client library:</p>
-      
-      <div class="bg-[#08090b] border border-[#1f2227] rounded-xl p-3.5 font-mono text-xs text-emerald-300 flex justify-between items-center group">
-        <span>pnpm add @obliq/client</span>
-        <button onclick="copySnippet('pnpm add @obliq/client', this)" class="text-xs bg-[#16181d] border border-[#262a32] px-2.5 py-1 rounded-lg text-neutral-300 hover:text-white hover:bg-neutral-800 transition">
-          Copy
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 2: OCR Execution -->
-    <div class="bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs">2</span>
-          Document OCR in Next.js / Node.js
-        </h3>
-        <button onclick="copyCode('code-ts-usage', this)" class="text-xs bg-[#16181d] border border-[#262a32] px-2.5 py-1 rounded-lg text-neutral-300 hover:text-white transition">
-          Copy code
-        </button>
-      </div>
-      <p class="text-neutral-400 text-sm mb-3">Submit documents (buffers, streams, blobs), track status with progress polling, and retrieve structured pages:</p>
-      
-      <div class="bg-[#08090b] border border-[#1f2227] rounded-xl overflow-hidden">
-        <div class="px-4 py-2 bg-[#0c0d10] border-b border-[#1b1d22] flex items-center justify-between text-[11px] text-neutral-400 font-mono">
-          <span>src/ocr-worker.ts</span>
-          <span>TypeScript</span>
-        </div>
-        <pre class="p-4 font-mono text-xs text-neutral-300 overflow-x-auto leading-relaxed" id="code-ts-usage"><code>import { ObliqClient } from "@obliq/client";
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div class="step"><span class="num">2</span><h3 style="margin:0">Run OCR in Next.js / Node.js</h3></div>
+            <button onclick="copyCode('code-ts-usage', this)" class="btn btn-sm">Copy code</button></div>
+          <p style="margin:8px 0 12px">Submit buffers, streams, or blobs, track progress, and read structured pages.</p>
+          <div class="code"><div class="code-h"><span>src/ocr-worker.ts</span><span>TypeScript</span></div>
+<pre id="code-ts-usage"><code>import { ObliqClient } from "@obliq/client";
 import * as fs from "node:fs/promises";
 
 const client = new ObliqClient({
@@ -153,28 +89,13 @@ const result = await client.jobs.poll(job.id, {
 console.log(`Extracted ${result.page_count} pages in ${result.processing_time_ms}ms:`);
 for (const page of result.pages) {
   console.log(`Page ${page.page_number}: ${page.text}`);
-}</code></pre>
-      </div>
-    </div>
-
-    <!-- Step 3: Key Management -->
-    <div class="bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs">3</span>
-          Automated API Key Management & Rotation
-        </h3>
-        <button onclick="copyCode('code-ts-keys', this)" class="text-xs bg-[#16181d] border border-[#262a32] px-2.5 py-1 rounded-lg text-neutral-300 hover:text-white transition">
-          Copy code
-        </button>
-      </div>
-      
-      <div class="bg-[#08090b] border border-[#1f2227] rounded-xl overflow-hidden">
-        <div class="px-4 py-2 bg-[#0c0d10] border-b border-[#1b1d22] flex items-center justify-between text-[11px] text-neutral-400 font-mono">
-          <span>src/keys.ts</span>
-          <span>TypeScript</span>
+}</code></pre></div>
         </div>
-        <pre class="p-4 font-mono text-xs text-neutral-300 overflow-x-auto leading-relaxed" id="code-ts-keys"><code>// List active workspace keys
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center"><div class="step"><span class="num">3</span><h3 style="margin:0">Manage and rotate API keys</h3></div>
+            <button onclick="copyCode('code-ts-keys', this)" class="btn btn-sm">Copy code</button></div>
+          <div class="code" style="margin-top:12px"><div class="code-h"><span>src/keys.ts</span><span>TypeScript</span></div>
+<pre id="code-ts-keys"><code>// List active workspace keys
 const keys = await client.keys.list();
 
 // Generate a new key with specific scopes and 90-day expiry
@@ -187,29 +108,17 @@ console.log(`Save your key: ${newKey.key}`);
 
 // Zero-downtime rotation with 24-hour overlap grace period
 const rotated = await client.keys.rotate(newKey.id, { gracePeriodHours: 24 });
-console.log(`Rotated key: ${rotated.key}`);</code></pre>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Python Section -->
-  <div id="tab-python" class="space-y-6 hidden">
-    <div class="bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-base font-bold text-white">Python Async Client (httpx)</h3>
-        <button onclick="copyCode('code-py', this)" class="text-xs bg-[#16181d] border border-[#262a32] px-2.5 py-1 rounded-lg text-neutral-300 hover:text-white transition">
-          Copy code
-        </button>
-      </div>
-      <p class="text-neutral-400 text-sm mb-3">Seamless integration with httpx and standard async Python workers:</p>
-      
-      <div class="bg-[#08090b] border border-[#1f2227] rounded-xl overflow-hidden">
-        <div class="px-4 py-2 bg-[#0c0d10] border-b border-[#1b1d22] flex items-center justify-between text-[11px] text-neutral-400 font-mono">
-          <span>main.py</span>
-          <span>Python 3.10+</span>
+console.log(`Rotated key: ${rotated.key}`);</code></pre></div>
         </div>
-        <pre class="p-4 font-mono text-xs text-neutral-300 overflow-x-auto leading-relaxed" id="code-py"><code>import time
+      </div>
+
+      <div id="tab-python" class="stack hidden">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Python async client (httpx)</h3>
+            <button onclick="copyCode('code-py', this)" class="btn btn-sm">Copy code</button></div>
+          <p style="margin:8px 0 12px">Works with httpx and standard Python workers.</p>
+          <div class="code"><div class="code-h"><span>main.py</span><span>Python 3.10+</span></div>
+<pre id="code-py"><code>import time
 import httpx
 
 API_KEY = "obliq_live_..."
@@ -235,118 +144,59 @@ with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
     # 3. Retrieve Structured Result
     result_resp = client.get(f"/v1/jobs/{job_id}/result", headers=headers)
     result = result_resp.json()
-    print(f"Extracted {result['page_count']} pages in {result.get('processing_time_ms')}ms")</code></pre>
+    print(f"Extracted {result['page_count']} pages in {result.get('processing_time_ms')}ms")</code></pre></div>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- cURL Section -->
-  <div id="tab-curl" class="space-y-6 hidden">
-    <div class="bg-[#0d0e11] border border-[#1f2227] rounded-2xl p-6 shadow-xl">
-      <h3 class="text-base font-bold text-white mb-4">REST API cURL Commands</h3>
-      <div class="space-y-5">
-        
-        <div>
-          <span class="text-xs text-neutral-400 font-semibold uppercase tracking-wider">1. Submit Document:</span>
-          <pre class="bg-[#08090b] border border-[#1f2227] rounded-xl p-3.5 font-mono text-xs text-emerald-300 mt-1.5 overflow-x-auto"><code>curl -X POST https://api.obliq.in/v1/jobs \
+      <div id="tab-curl" class="stack hidden">
+        <div class="card">
+          <h3 style="margin:0 0 14px">REST API cURL commands</h3>
+          <div class="stack">
+            <div><div class="cap">1. Submit document</div><div class="code"><pre><code>curl -X POST https://api.obliq.in/v1/jobs \
   -H "Authorization: Bearer $OBLIQ_API_KEY" \
-  -F "file=@invoice.pdf;type=application/pdf"</code></pre>
+  -F "file=@invoice.pdf;type=application/pdf"</code></pre></div></div>
+            <div><div class="cap">2. Poll job status</div><div class="code"><pre><code>curl https://api.obliq.in/v1/jobs/&lt;job_id&gt; \
+  -H "Authorization: Bearer $OBLIQ_API_KEY"</code></pre></div></div>
+            <div><div class="cap">3. Fetch structured result</div><div class="code"><pre><code>curl https://api.obliq.in/v1/jobs/&lt;job_id&gt;/result \
+  -H "Authorization: Bearer $OBLIQ_API_KEY"</code></pre></div></div>
+          </div>
         </div>
-
-        <div>
-          <span class="text-xs text-neutral-400 font-semibold uppercase tracking-wider">2. Poll Job Status:</span>
-          <pre class="bg-[#08090b] border border-[#1f2227] rounded-xl p-3.5 font-mono text-xs text-emerald-300 mt-1.5 overflow-x-auto"><code>curl https://api.obliq.in/v1/jobs/&lt;job_id&gt; \
-  -H "Authorization: Bearer $OBLIQ_API_KEY"</code></pre>
-        </div>
-
-        <div>
-          <span class="text-xs text-neutral-400 font-semibold uppercase tracking-wider">3. Fetch Structured Result:</span>
-          <pre class="bg-[#08090b] border border-[#1f2227] rounded-xl p-3.5 font-mono text-xs text-emerald-300 mt-1.5 overflow-x-auto"><code>curl https://api.obliq.in/v1/jobs/&lt;job_id&gt;/result \
-  -H "Authorization: Bearer $OBLIQ_API_KEY"</code></pre>
-        </div>
-
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Neon Guided Paths (Image 1 Bottom) -->
-  <div class="my-8">
-    <div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Guided Architecture Paths</div>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      
-      <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold text-xs mb-3">⚡</div>
-        <h4 class="text-white font-bold text-sm">Full Backend Quickstart</h4>
-        <p class="text-neutral-400 text-xs mt-1 leading-relaxed">End-to-end integration with Next.js App Router, webhooks, and secure storage.</p>
-      </div>
-
-      <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition">
-        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-xs mb-3">🔄</div>
-        <h4 class="text-white font-bold text-sm">Zero-Downtime Rotation</h4>
-        <p class="text-neutral-400 text-xs mt-1 leading-relaxed">Automate CI/CD secret rotation without dropping any inflight user uploads.</p>
-      </div>
-
-      <div class="p-5 rounded-2xl bg-[#0d0e11] border border-[#1f2227] hover:border-[#2a2e36] transition">
-        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold text-xs mb-3">📊</div>
-        <h4 class="text-white font-bold text-sm">High-Throughput Batching</h4>
-        <p class="text-neutral-400 text-xs mt-1 leading-relaxed">Process enterprise-grade invoice archives with concurrent worker pools.</p>
-      </div>
-
+  <!-- Guides -->
+  <section class="section" style="border-bottom:0">
+    <div><h2>Guided paths</h2><p>Architecture walkthroughs for common production setups.</p></div>
+    <div class="cards">
+      <div class="card hov"><span class="ico">⚡</span><h3>Full backend quickstart</h3><p>End-to-end integration with the Next.js App Router, webhooks, and secure storage.</p></div>
+      <div class="card hov"><span class="ico" style="color:var(--blue)">↻</span><h3>Zero-downtime rotation</h3><p>Automate CI/CD secret rotation without dropping in-flight uploads.</p></div>
+      <div class="card hov"><span class="ico" style="color:var(--violet)">≣</span><h3>High-throughput batching</h3><p>Process large invoice archives with concurrent worker pools.</p></div>
+      <a href="/docs" target="_blank" rel="noopener" class="card"><span class="ico" style="color:#4cc9d8">API</span><h3>API reference</h3><p>Browse every endpoint in Swagger or Redoc.</p></a>
     </div>
-  </div>
-
+  </section>
+</div>
 </main>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  function switchTab(lang) {
-    ['ts', 'python', 'curl'].forEach(t => {
-      document.getElementById('tab-' + t).classList.add('hidden');
-      const btn = document.getElementById('tab-btn-' + t);
-      btn.className = 'px-4 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white hover:bg-[#15171b] transition';
-      const fwCard = document.getElementById('fw-' + t);
-      if (fwCard) {
-        fwCard.className = 'framework-card p-3.5 rounded-xl bg-[#0d0e11] border border-[#1f2227] text-left hover:border-[#2f343e] transition group';
-      }
+  function switchTab(lang){
+    ['ts','python','curl'].forEach(t=>{
+      document.getElementById('tab-'+t).classList.add('hidden');
+      document.getElementById('tab-btn-'+t).classList.remove('on');
+      const fw=document.getElementById('fw-'+t); if(fw) fw.classList.remove('sel');
     });
-
-    document.getElementById('tab-' + lang).classList.remove('hidden');
-    const activeBtn = document.getElementById('tab-btn-' + lang);
-    activeBtn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 transition';
-    
-    const activeFw = document.getElementById('fw-' + lang);
-    if (activeFw) {
-      activeFw.className = 'framework-card p-3.5 rounded-xl bg-[#0d0e11] border border-emerald-500/40 text-left hover:border-emerald-500/60 transition group';
-    }
+    document.getElementById('tab-'+lang).classList.remove('hidden');
+    document.getElementById('tab-btn-'+lang).classList.add('on');
+    const fw=document.getElementById('fw-'+lang); if(fw) fw.classList.add('sel');
   }
-
-  function copySnippet(text, btn) {
-    navigator.clipboard.writeText(text).then(() => {
-      const orig = btn.innerText;
-      btn.innerText = 'Copied!';
-      setTimeout(() => { btn.innerText = orig; }, 2000);
-    });
-  }
-
-  function copyCode(elementId, btn) {
-    const el = document.getElementById(elementId);
-    if (el) {
-      navigator.clipboard.writeText(el.innerText).then(() => {
-        const orig = btn.innerText;
-        btn.innerText = 'Copied!';
-        setTimeout(() => { btn.innerText = orig; }, 2000);
-      });
-    }
-  }
-
-  function copyAgentPrompt() {
-    const text = document.getElementById('agent-prompt-val').innerText.trim();
-    navigator.clipboard.writeText(text).then(() => {
-      const label = document.getElementById('prompt-copy-text');
-      label.innerText = 'Copied!';
-      setTimeout(() => { label.innerText = 'Copy prompt'; }, 2000);
-    });
+  function flash(btn){ const o=btn.innerText; btn.innerText='Copied!'; setTimeout(()=>btn.innerText=o,2000); }
+  function copySnippet(text,btn){ navigator.clipboard.writeText(text).then(()=>flash(btn)); }
+  function copyCode(id,btn){ const el=document.getElementById(id); if(el) navigator.clipboard.writeText(el.innerText).then(()=>flash(btn)); }
+  function copyAgentPrompt(){
+    const t=document.getElementById('agent-prompt-val').innerText.trim();
+    navigator.clipboard.writeText(t).then(()=>{ const l=document.getElementById('prompt-copy-text'); l.innerText='Copied!'; setTimeout(()=>l.innerText='Copy prompt',2000); });
   }
 </script>
 {% endblock %}

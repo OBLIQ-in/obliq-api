@@ -1,245 +1,195 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Developer Portal{% endblock %} - OBLIQ-in Developer Portal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-          },
-          colors: {
-            brand: {
-              DEFAULT: '#00e599',
-              50: '#ecfdf5',
-              100: '#d1fae5',
-              400: '#34d399',
-              500: '#10b981',
-              600: '#059669',
-              accent: '#00e599',
-            },
-            surface: {
-              base: '#08090a',
-              card: '#0f1013',
-              cardHover: '#14161a',
-              border: '#1f2227',
-              borderHover: '#2a2e36',
-              muted: '#717885',
-            }
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body {
-      font-family: 'Bricolage Grotesque', system-ui, sans-serif;
-      background-color: #08090a;
-      color: #f3f4f6;
-    }
-    code, pre {
-      font-family: 'JetBrains Mono', monospace;
-    }
-    /* Custom scrollbar for dark theme */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #08090a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1f2227;
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #2e343d;
-    }
-  </style>
-  {% block extra_head %}{% endblock %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Developer Portal{% endblock %} - OBLIQ-in Developer Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#121212;--panel:#171717;--panel2:#1c1c1c;--line:#2a2a2a;--line2:#3a3a3a;--text:#ededed;--mute:#a0a0a0;--dim:#6f6f6f;--acc:#3ecf8e;--accbg:rgba(62,207,142,.1);--warn:#f5b544;--err:#f0616d;--blue:#5aa9f0;--violet:#a78bfa;color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{font:14px/1.55 'Bricolage Grotesque',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(62,207,142,.25)}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+code,pre,.mono{font-family:'JetBrains Mono',monospace}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.hidden{display:none!important}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px;width:100%}
+/* nav */
+.nav{position:sticky;top:0;z-index:40;height:52px;background:rgba(18,18,18,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:100%}
+.nav-l,.nav-r,.links{display:flex;align-items:center;gap:6px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:18px;color:#fff;font-weight:700;font-size:17px;letter-spacing:-.02em}
+.pill{font-size:11px;font-weight:500;padding:1px 8px;border-radius:99px;border:1px solid var(--line2);color:var(--mute)}
+.links a{padding:6px 11px;border-radius:6px;color:var(--mute);font-size:13px;transition:color .15s,background .15s}
+.links a:hover{color:#fff;background:var(--panel2)}
+.links a.active{color:#fff;background:var(--panel2)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:6px;border:1px solid var(--line2);background:var(--panel);font-size:13px;font-weight:500;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--panel2);border-color:#4a4a4a}
+.btn-primary{background:var(--acc);border-color:var(--acc);color:#06190f;font-weight:600}
+.btn-primary:hover{background:#5ddba4;border-color:#5ddba4}
+.btn-warn{background:var(--warn);border-color:var(--warn);color:#201500;font-weight:600}
+.btn-warn:hover{background:#f8c56b}
+.btn-danger{color:var(--err);border-color:rgba(240,97,109,.35);background:rgba(240,97,109,.06)}
+.btn-danger:hover{background:rgba(240,97,109,.14)}
+.btn-sm{padding:3px 10px;font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--acc);display:inline-block}
+.dot.off{background:var(--warn)}
+#offline-banner{padding:8px 16px;text-align:center;font-size:12px;background:rgba(245,181,68,.08);color:var(--warn);border-bottom:1px solid rgba(245,181,68,.25)}
+/* page */
+main{flex:1;padding:48px 0 72px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;padding-bottom:32px;border-bottom:1px solid var(--line)}
+h1{font-size:28px;font-weight:600;letter-spacing:-.025em}
+.sub{color:var(--mute);margin-top:6px;max-width:560px}
+.tag{font-size:11px;font-weight:500;padding:2px 8px;border-radius:5px;background:var(--accbg);color:var(--acc);border:1px solid rgba(62,207,142,.25);vertical-align:middle;margin-left:8px}
+.section{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:40px;padding:40px 0;border-bottom:1px solid var(--line)}
+.section>div:first-child h2{font-size:15px;font-weight:600}
+.section>div:first-child p{color:var(--mute);font-size:13px;margin-top:6px;max-width:260px}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 16px;align-content:start}
+.item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:8px;border:1px solid transparent;background:none;text-align:left;font-size:13px;transition:background .15s,border-color .15s}
+.item:hover{background:var(--panel);border-color:var(--line)}
+.item.sel{background:var(--panel);border-color:rgba(62,207,142,.45)}
+.ico{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font:500 11px 'JetBrains Mono',monospace;background:var(--panel2);border:1px solid var(--line);color:var(--acc);flex:none}
+.item small{display:block;color:var(--dim);font-size:11px}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;transition:border-color .15s}
+a.card:hover,.card.hov:hover{border-color:var(--line2)}
+.card h3{font-size:14px;font-weight:600;margin:10px 0 4px}
+.card p{color:var(--mute);font-size:13px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--panel2)}
+.panel-h h3{font-size:14px;font-weight:600}
+.panel-h p{font-size:12px;color:var(--mute)}
+.panel-b{padding:18px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:32px 0;overflow:hidden}
+.kpi{padding:20px;border-right:1px solid var(--line)}
+.kpi:last-child{border:0}
+.kpi .k{font-size:12px;color:var(--mute)}
+.kpi .v{font-size:30px;font-weight:600;letter-spacing:-.03em;margin:4px 0 6px;font-variant-numeric:tabular-nums}
+.kpi .n{font-size:12px;color:var(--dim)}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:1px 8px;border-radius:99px;border:1px solid var(--line2);color:var(--mute)}
+.b-ok{color:var(--acc);background:var(--accbg);border-color:rgba(62,207,142,.3)}
+.b-warn{color:var(--warn);background:rgba(245,181,68,.1);border-color:rgba(245,181,68,.3)}
+.seg{display:inline-flex;padding:3px;gap:2px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.seg button{padding:5px 12px;border-radius:5px;border:0;background:none;color:var(--mute);font-size:12px;font-weight:500}
+.seg button:hover{color:#fff}
+.seg button.on{background:var(--panel2);color:#fff;box-shadow:inset 0 0 0 1px var(--line2)}
+.code{background:#0e0e0e;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.code-h{display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid var(--line);font:11px 'JetBrains Mono',monospace;color:var(--dim)}
+.code pre{padding:14px;font-size:12px;line-height:1.7;color:#cfcfcf;overflow-x:auto}
+table{width:100%;border-collapse:collapse;text-align:left}
+th{padding:10px 18px;font-size:12px;font-weight:500;color:var(--dim);border-bottom:1px solid var(--line);background:#141414;white-space:nowrap}
+td{padding:14px 18px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#1a1a1a}
+.sc{display:inline-block;font:11px 'JetBrains Mono',monospace;padding:1px 6px;border-radius:4px;background:var(--panel2);border:1px solid var(--line);margin-right:4px;color:var(--mute)}
+.scroll{overflow-x:auto}
+/* forms + modal */
+label.l{display:block;font-size:12px;font-weight:500;margin-bottom:6px}
+input[type=text],select{width:100%;padding:9px 12px;background:#0e0e0e;border:1px solid var(--line2);border-radius:6px;color:var(--text);font:inherit;font-size:13px}
+input[type=text]:focus,select:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+input[type=checkbox]{accent-color:var(--acc);margin-top:3px}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg{background:var(--panel);border:1px solid var(--line2);border-radius:12px;width:100%;max-width:440px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.dlg h3{font-size:16px;font-weight:600}
+.dlg .d{color:var(--mute);font-size:12px;margin-top:2px}
+.dlg .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.note{padding:12px;border-radius:8px;font-size:12px;border:1px solid rgba(245,181,68,.3);background:rgba(245,181,68,.07);color:#f3cd86}
+/* footer */
+footer{border-top:1px solid var(--line);padding:22px 0;font-size:12px;color:var(--dim)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+footer .r{display:flex;gap:22px;align-items:center}
+footer a:hover{color:#fff}
+@media(max-width:860px){.section{grid-template-columns:1fr;gap:20px}.items{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}.kpi:nth-child(2){border-right:0}.kpi:nth-child(-n+2){border-bottom:1px solid var(--line)}.links{display:none}.cards{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+{% block extra_head %}{% endblock %}
 </head>
-<body class="bg-[#08090a] text-neutral-100 min-h-screen flex flex-col antialiased selection:bg-emerald-500/20 selection:text-emerald-300">
+<body>
 
-<!-- Top Navigation -->
-<nav class="border-b border-[#1b1e23] bg-[#0a0b0d]/90 backdrop-blur-md sticky top-0 z-40">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
-      
-      <!-- Brand & Navigation links -->
-      <div class="flex items-center space-x-8">
-        <a href="/dashboard/keys" class="flex items-center py-1 group">
-          <span class="font-extrabold text-xl tracking-tight text-white group-hover:text-emerald-400 transition-colors">
-            OBLIQ<span class="text-emerald-400">-in</span>
-          </span>
-          <span class="ml-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
-            Portal
-          </span>
-        </a>
-
-        <div class="hidden md:flex space-x-1">
-          <a href="/dashboard/keys" id="nav-keys" class="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-300 hover:text-white hover:bg-[#15171b] transition">
-            API Keys
-          </a>
-          <a href="/dashboard/usage" id="nav-usage" class="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-300 hover:text-white hover:bg-[#15171b] transition">
-            Usage & Observability
-          </a>
-          <a href="/dashboard/docs" id="nav-docs" class="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-300 hover:text-white hover:bg-[#15171b] transition">
-            Client Docs & SDK
-          </a>
-          <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-emerald-400 hover:bg-[#15171b] transition flex items-center gap-1.5">
-            <span>OpenAPI</span>
-            <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        </div>
+<nav class="nav">
+  <div class="wrap">
+    <div class="nav-l">
+      <a href="/dashboard/keys" class="brand" aria-label="OBLIQ-in">
+        <span>OBLIQ-in</span><span class="pill">Portal</span>
+      </a>
+      <div class="links">
+        <a href="/dashboard/keys" id="nav-keys">API Keys</a>
+        <a href="/dashboard/usage" id="nav-usage">Usage &amp; Observability</a>
+        <a href="/dashboard/docs" id="nav-docs">Client Docs &amp; SDK</a>
+        <a href="/docs" target="_blank" rel="noopener">OpenAPI ↗</a>
       </div>
-
-      <!-- Auth & Actions -->
-      <div class="flex items-center space-x-3">
-        <button onclick="promptAuthToken()" id="auth-btn" class="text-xs px-3 py-1.5 rounded-lg border border-[#23272e] bg-[#121418] text-neutral-300 hover:bg-[#181a1f] hover:border-[#2f343d] transition flex items-center shadow-sm">
-          <span class="relative flex h-2 w-2 mr-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" id="auth-indicator"></span>
-          </span>
-          <span id="auth-label">API Key / Token</span>
-        </button>
-      </div>
-
+    </div>
+    <div class="nav-r">
+      <button onclick="promptAuthToken()" id="auth-btn" class="btn">
+        <span class="dot" id="auth-indicator"></span><span id="auth-label">API Key / Token</span>
+      </button>
     </div>
   </div>
 </nav>
 
-<!-- Offline Warning Banner -->
-<div id="offline-banner" class="hidden bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-xs text-amber-400 flex items-center justify-center gap-2">
-  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-  </svg>
-  <span>You are offline. Key creation, rotation, and live metrics require an active network connection.</span>
-</div>
+<div id="offline-banner" class="hidden">You are offline. Key creation, rotation, and live metrics need an active network connection.</div>
 
-<!-- Main Content Slot -->
 {% block content %}{% endblock %}
 
-<!-- Footer -->
-<footer class="mt-auto border-t border-[#1b1e23] bg-[#090a0c] py-6 text-xs text-neutral-400">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-    <div class="flex items-center space-x-2">
-      <span class="font-bold text-white tracking-tight">OBLIQ<span class="text-emerald-400">-in</span></span>
-      <span>&copy; 2026. High-performance OCR microservice engine.</span>
-    </div>
-    <div class="flex items-center space-x-6 text-neutral-400">
-      <a href="/dashboard/docs" class="hover:text-emerald-400 transition">Client SDKs</a>
-      <a href="/docs" target="_blank" class="hover:text-emerald-400 transition">API Reference</a>
-      <span class="flex items-center gap-1.5 text-neutral-400">
-        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-        Systems Operational
-      </span>
+<footer>
+  <div class="wrap">
+    <div><strong style="color:#fff">OBLIQ-in</strong> &nbsp;© 2026. High-performance OCR microservice engine.</div>
+    <div class="r">
+      <a href="/dashboard/docs">Client SDKs</a>
+      <a href="/docs" target="_blank" rel="noopener">API Reference</a>
+      <span><span class="dot"></span>&nbsp; Systems operational</span>
     </div>
   </div>
 </footer>
 
 <script>
-  // Active Navigation Highlighting
-  (function highlightNav() {
-    const p = window.location.pathname;
-    if (p.includes('/keys')) {
-      const el = document.getElementById('nav-keys');
-      if (el) el.className = 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-    } else if (p.includes('/usage')) {
-      const el = document.getElementById('nav-usage');
-      if (el) el.className = 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-    } else if (p.includes('/docs')) {
-      const el = document.getElementById('nav-docs');
-      if (el) el.className = 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-    }
+  (function(){
+    const p=location.pathname,m={'/keys':'nav-keys','/usage':'nav-usage','/docs':'nav-docs'};
+    for(const k in m){ if(p.includes(k)){ const el=document.getElementById(m[k]); if(el) el.classList.add('active'); break; } }
   })();
 
-  // Auth Token Management
-  function getAuthToken() {
-    return localStorage.getItem('obliq_auth_token') || '';
-  }
-
-  function setAuthToken(token) {
-    if (token) {
-      localStorage.setItem('obliq_auth_token', token.trim());
-    } else {
-      localStorage.removeItem('obliq_auth_token');
-    }
+  function getAuthToken(){ return localStorage.getItem('obliq_auth_token') || ''; }
+  function setAuthToken(token){
+    if(token) localStorage.setItem('obliq_auth_token', token.trim());
+    else localStorage.removeItem('obliq_auth_token');
     updateAuthUI();
   }
-
-  function promptAuthToken() {
-    const current = getAuthToken();
-    const token = prompt('Enter Bearer Token (Dashboard JWT or Admin API Key):', current);
-    if (token !== null) {
-      setAuthToken(token);
-      location.reload();
+  function promptAuthToken(){
+    const token = prompt('Enter Bearer Token (Dashboard JWT or Admin API Key):', getAuthToken());
+    if(token !== null){ setAuthToken(token); location.reload(); }
+  }
+  function updateAuthUI(){
+    const token=getAuthToken(), i=document.getElementById('auth-indicator'), l=document.getElementById('auth-label');
+    if(i && l){
+      i.className = token ? 'dot' : 'dot off';
+      l.innerText = token ? 'Authenticated (' + token.slice(0,10) + '...)' : 'Set Auth Token';
     }
   }
-
-  function updateAuthUI() {
-    const token = getAuthToken();
-    const indicator = document.getElementById('auth-indicator');
-    const label = document.getElementById('auth-label');
-    if (indicator && label) {
-      if (token) {
-        indicator.className = 'relative inline-flex rounded-full h-2 w-2 bg-emerald-500';
-        label.innerText = 'Authenticated (' + token.slice(0, 10) + '...)';
-      } else {
-        indicator.className = 'relative inline-flex rounded-full h-2 w-2 bg-amber-500';
-        label.innerText = 'Set Auth Token';
-      }
-    }
+  function checkOnlineStatus(){
+    const b=document.getElementById('offline-banner');
+    if(b) b.classList.toggle('hidden', navigator.onLine);
   }
-
-  // Offline detection
-  function checkOnlineStatus() {
-    const banner = document.getElementById('offline-banner');
-    if (banner) {
-      if (navigator.onLine) {
-        banner.classList.add('hidden');
-      } else {
-        banner.classList.remove('hidden');
-      }
-    }
-  }
-
   window.addEventListener('online', checkOnlineStatus);
   window.addEventListener('offline', checkOnlineStatus);
-  document.addEventListener('DOMContentLoaded', () => {
-    checkOnlineStatus();
-    updateAuthUI();
-  });
+  document.addEventListener('DOMContentLoaded', ()=>{ checkOnlineStatus(); updateAuthUI(); });
 
-  // Generic API Caller
-  async function apiFetch(endpoint, options = {}) {
-    const token = getAuthToken();
-    const headers = {
-      ...(options.headers || {})
-    };
-    if (token && !headers['Authorization']) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    const resp = await fetch(endpoint, { ...options, headers });
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
+  async function apiFetch(endpoint, options={}){
+    const token=getAuthToken();
+    const headers={...(options.headers||{})};
+    if(token && !headers['Authorization']) headers['Authorization']=`Bearer ${token}`;
+    const resp=await fetch(endpoint,{...options,headers});
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
       throw new Error(err.error?.message || err.detail || `Request failed (${resp.status})`);
     }
     return resp;
   }
 </script>
-
 {% block scripts %}{% endblock %}
-
 </body>
 </html>
