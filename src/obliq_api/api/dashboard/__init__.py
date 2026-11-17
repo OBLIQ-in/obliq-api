@@ -316,7 +316,7 @@ async def get_usage_breakdown(
     query = (
         select(
             UsageRecord.status,
-            func.count(UsageRecord.id).label("count"),
+            func.count(UsageRecord.id).label("total_jobs"),
         )
         .where(
             UsageRecord.organisation_id == org_id,
@@ -328,12 +328,12 @@ async def get_usage_breakdown(
         query = query.where(UsageRecord.api_key_id == key_id)
 
     rows = await db.execute(query)
-    raw_counts = {row.status: row.count for row in rows}
+    raw_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in rows}
 
-    total = sum(raw_counts.values())
+    total: int = sum(raw_counts.values())
 
     # Map known statuses with consistent labels and colors
-    category_config = [
+    category_config: list[tuple[str, str, str]] = [
         ("succeeded", "Successful extractions", "#3ecf8e"),
         ("partial", "Partial / degraded", "#a78bfa"),
         ("failed", "Failed jobs", "#f0616d"),
