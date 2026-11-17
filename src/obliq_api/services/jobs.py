@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import shutil
 import tempfile
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -12,6 +12,7 @@ import structlog
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from obliq_api.compat import UTC
 from obliq_api.config import get_settings
 from obliq_api.db.session import AsyncSessionLocal
 from obliq_api.exceptions import JobError, NotFoundError

@@ -18,7 +18,7 @@ GET /v1/dashboard/usage/daily
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -26,6 +26,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from obliq_api.compat import UTC
 from obliq_api.db.session import get_db
 from obliq_api.dependencies import AuthContext, require_dashboard_user
 from obliq_api.models.api_key import ApiKey

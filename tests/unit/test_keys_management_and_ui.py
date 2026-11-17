@@ -1,10 +1,11 @@
 import asyncio
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from starlette.testclient import TestClient
 
+from obliq_api.compat import UTC
 from obliq_api.dependencies import AuthContext, require_scope
 from obliq_api.exceptions import AuthorizationError
 from obliq_api.main import create_app

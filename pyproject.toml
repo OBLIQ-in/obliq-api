@@ -3,7 +3,7 @@ name = "obliq-api"
 version = "0.1.0"
 description = "HTTP OCR service wrapping obliq-ocr (PyMuPDF + RapidOCR/ONNX)"
 readme = "README.md"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.10,<3.13"
 dependencies = [
     "obliq-ocr==0.1.3",
     "fastapi[standard]>=0.115.0,<0.120",
@@ -76,7 +76,7 @@ extend-exclude = ["alembic"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-ignore = ["E501", "B008"]
+ignore = ["E501", "B008", "UP017"]
 
 [tool.ruff.lint.per-file-ignores]
 "app.py" = ["E402"]
