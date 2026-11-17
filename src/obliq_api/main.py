@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import structlog
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from obliq_api.api.dashboard import router as dashboard_router
@@ -134,6 +136,11 @@ def create_app() -> FastAPI:
             )
         )
         return ORJSONResponse(status_code=422, content=body.model_dump())
+
+    # ── Static files ───────────────────────────────────────────────────────
+    static_dir = Path(__file__).resolve().parent / "static"
+    static_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     # ── Routers ───────────────────────────────────────────────────────────
     app.include_router(health_router)
