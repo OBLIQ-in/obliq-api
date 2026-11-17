@@ -55,4 +55,5 @@ jobs:
             --fixture tests/fixtures/golden_fixture.pdf \
             --truth tests/fixtures/golden_fixture_truth.txt \
             --max-latency 4.0 \
+            --max-e2e-latency 30.0 \
             --max-cer 0.03
