@@ -93,6 +93,18 @@ class HeatmapResponse(BaseModel):
     max_density: int
 
 
+class BreakdownItem(BaseModel):
+    label: str
+    count: int
+    percentage: float
+    color: str
+
+
+class BreakdownResponse(BaseModel):
+    total: int
+    items: list[BreakdownItem]
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -288,3 +300,61 @@ async def get_usage_heatmap(
         total_requests=total_requests,
         max_density=max_density,
     )
+
+
+@router.get("/usage/breakdown", response_model=BreakdownResponse)
+async def get_usage_breakdown(
+    days: int = Query(30, ge=1, le=90),
+    key_id: UUID | None = Query(None),
+    ctx: AuthContext = Depends(require_dashboard_user),
+    db: AsyncSession = Depends(get_db),
+) -> BreakdownResponse:
+    """Return job execution breakdown by processing outcome for telemetry."""
+    org_id: UUID = ctx.organisation_id
+    since = datetime.now(UTC) - timedelta(days=days)
+
+    query = (
+        select(
+            UsageRecord.status,
+            func.count(UsageRecord.id).label("count"),
+        )
+        .where(
+            UsageRecord.organisation_id == org_id,
+            UsageRecord.created_at >= since,
+        )
+        .group_by(UsageRecord.status)
+    )
+    if key_id:
+        query = query.where(UsageRecord.api_key_id == key_id)
+
+    rows = await db.execute(query)
+    raw_counts = {row.status: row.count for row in rows}
+
+    total = sum(raw_counts.values())
+
+    # Map known statuses with consistent labels and colors
+    category_config = [
+        ("succeeded", "Successful extractions", "#3ecf8e"),
+        ("partial", "Partial / degraded", "#a78bfa"),
+        ("failed", "Failed jobs", "#f0616d"),
+    ]
+
+    items: list[BreakdownItem] = []
+    for status_key, label, color in category_config:
+        cnt = raw_counts.pop(status_key, 0)
+        pct = round((cnt / total * 100), 1) if total > 0 else 0.0
+        items.append(BreakdownItem(label=label, count=cnt, percentage=pct, color=color))
+
+    # Any remaining statuses
+    for other_status, cnt in raw_counts.items():
+        pct = round((cnt / total * 100), 1) if total > 0 else 0.0
+        items.append(
+            BreakdownItem(
+                label=f"Other ({other_status})",
+                count=cnt,
+                percentage=pct,
+                color="#5aa9f0",
+            )
+        )
+
+    return BreakdownResponse(total=total, items=items)
