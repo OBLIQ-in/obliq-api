@@ -83,3 +83,17 @@ def test_ui_endpoints_render():
         assert resp_docs.status_code == 200
         assert "API Client SDKs" in resp_docs.text
         assert "@obliq/client" in resp_docs.text
+        assert "Swagger ↗" in resp_docs.text
+        assert "OpenAPI ↗" in resp_docs.text
+
+        # Static assets
+        for logo in [
+            "openapi.png",
+            "python.png",
+            "swagger.png",
+            "typescript.png",
+            "bash.png",
+            "javascript.png",
+        ]:
+            resp_logo = client.get(f"/static/logos/{logo}")
+            assert resp_logo.status_code == 200
