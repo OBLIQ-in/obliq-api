@@ -29,7 +29,6 @@ dependencies = [
     "orjson>=3.10,<4",
     "aiofiles>=24.1,<25",
     "email-validator>=2.2,<3",
-    "psycopg2",
 ]
 
 [project.optional-dependencies]
