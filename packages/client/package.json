@@ -34,6 +34,7 @@
   "author": "Obliq Team",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/node": "^18.19.130",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
     "vitest": "^1.5.0"
