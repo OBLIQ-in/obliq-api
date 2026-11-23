@@ -75,7 +75,16 @@ class RedisJobStore(JobStore):
         if current is None:
             return
         current.update(updates)
-        await self.create_job(job_id, current, ttl=ttl)
+        assert self._client
+        # Redis SET discards the existing expiration unless KEEPTTL is set.
+        # XX also keeps a job that expired since GET from being recreated.
+        await self._client.set(
+            self._key(job_id),
+            json.dumps(current, default=str),
+            xx=True,
+            ex=ttl,
+            keepttl=ttl is None,
+        )
 
     async def set_result(
         self,
