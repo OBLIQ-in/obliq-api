@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import shutil
 import tempfile
+from contextlib import AsyncExitStack
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -51,7 +51,7 @@ class JobService:
         job_id = uuid4()
         now = datetime.now(UTC).isoformat()
 
-        async with save_upload_temporarily(upload) as tmp_path:
+        async with save_upload_temporarily(upload) as tmp_path, AsyncExitStack() as pending:
             size = tmp_path.stat().st_size
             estimated_pages = max(1, min(size // 40_000, settings.max_pages_per_job))
 
@@ -63,18 +63,14 @@ class JobService:
                 is_internal=is_internal,
             )
 
-            # Commit the credit reservation now, before we return 202.
-            # The background task opens its own session, so the HTTP session
-            # must commit here — otherwise the reservation is invisible to it.
-            await self.session.commit()
-
-            # Persist a copy for the background task
-            fd, work_name = tempfile.mkstemp(suffix=tmp_path.suffix)
-            import os
-
-            os.close(fd)
-            work_path = Path(work_name)
-            shutil.copy2(tmp_path, work_path)
+            # Give the worker its own pathname without copying the upload. Until
+            # handoff completes, the request owns cleanup of that file.
+            with tempfile.NamedTemporaryFile(
+                dir=tmp_path.parent, suffix=tmp_path.suffix, delete=False
+            ) as work_file:
+                work_path = Path(work_file.name)
+            pending.callback(work_path.unlink, missing_ok=True)
+            tmp_path.replace(work_path)
 
             payload = {
                 "id": str(job_id),
@@ -93,6 +89,12 @@ class JobService:
                 payload,
                 ttl=settings.job_result_ttl_seconds * 2,
             )
+
+            pending.push_async_callback(self.job_store.delete_job, job_id)
+
+            # Only make the reservation durable after staging succeeds. The
+            # worker has its own DB session, so commit before launching it.
+            await self.session.commit()
 
             log.info(
                 "job.queued",
@@ -119,6 +121,8 @@ class JobService:
                     request_id=request_id,
                 )
             )
+
+            pending.pop_all()  # Worker owns the file and queued state now.
 
         return payload
 
