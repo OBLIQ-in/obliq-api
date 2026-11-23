@@ -12,7 +12,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import difflib
 import json
 import os
 import sys
@@ -30,9 +29,17 @@ def calculate_cer(reference: str, hypothesis: str) -> float:
     if not ref:
         return 0.0 if not hyp else 1.0
 
-    matcher = difflib.SequenceMatcher(None, ref, hyp)
-    similarity = matcher.ratio()
-    return max(0.0, 1.0 - similarity)
+    # Each cell is the minimum number of edits for the two prefixes.
+    # Keep one row per iteration: memory is bounded by the reference length.
+    previous = list(range(len(ref) + 1))
+    for i, observed in enumerate(hyp, start=1):
+        current = [i]
+        for j, expected in enumerate(ref, start=1):
+            current.append(
+                min(current[-1] + 1, previous[j] + 1, previous[j - 1] + (observed != expected))
+            )
+        previous = current
+    return previous[-1] / len(ref)
 
 
 def send_alert(webhook_url: str, title: str, details: dict) -> None:
@@ -102,7 +109,15 @@ def main() -> int:
         print(f"[CANARY] ERROR: Golden fixture not found at {fixture_path}", file=sys.stderr)
         return 1
 
-    truth_text = truth_path.read_text(encoding="utf-8") if truth_path.exists() else ""
+    try:
+        truth_text = truth_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        print(f"[CANARY] ERROR: Cannot read ground truth {truth_path}: {exc}", file=sys.stderr)
+        return 1
+    if not truth_text.strip():
+        print(f"[CANARY] ERROR: Empty ground truth: {truth_path}", file=sys.stderr)
+        return 1
+
     fixture_bytes = fixture_path.read_bytes()
 
     headers = {}
@@ -208,7 +223,7 @@ def main() -> int:
         extracted_text = " ".join([p.get("text", "") for p in pages if p.get("text")])
 
         # Evaluate Accuracy
-        cer = calculate_cer(truth_text, extracted_text) if truth_text else 0.0
+        cer = calculate_cer(truth_text, extracted_text)
         accuracy = max(0.0, 1.0 - cer) * 100
 
         # Evaluate Engine Latency (per page)
