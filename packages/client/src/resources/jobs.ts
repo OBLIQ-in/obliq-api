@@ -9,6 +9,14 @@ import type {
 
 type FetchFn = (path: string, init?: RequestInit) => Promise<Response>;
 
+function asBlobPart(bytes: Uint8Array | ArrayBuffer): BlobPart {
+  if (bytes instanceof ArrayBuffer) return bytes;
+  // Keep the original view's range; only shared backing stores need a copy for Blob.
+  return bytes.buffer instanceof ArrayBuffer
+    ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+    : new Uint8Array(bytes);
+}
+
 export class JobsResource {
   constructor(private readonly request: FetchFn) {}
 
@@ -22,21 +30,23 @@ export class JobsResource {
     if (options.file instanceof Blob) {
       blob = options.file;
     } else if (options.file instanceof Uint8Array || options.file instanceof ArrayBuffer) {
-      blob = new Blob([options.file], { type: "application/pdf" });
+      blob = new Blob([asBlobPart(options.file)], { type: "application/pdf" });
     } else {
       // Stream: read into chunks
       const reader = (options.file as ReadableStream<Uint8Array>).getReader();
-      const chunks: Uint8Array[] = [];
+      const chunks: BlobPart[] = [];
       let done = false;
       while (!done) {
         const result = await reader.read();
         done = result.done;
-        if (result.value) chunks.push(result.value);
+        if (result.value) chunks.push(asBlobPart(result.value));
       }
       blob = new Blob(chunks, { type: "application/pdf" });
     }
 
-    const fileName = options.fileName || (options.file instanceof File ? options.file.name : "document.pdf");
+    // Node 18 supports named files in FormData without a global File constructor.
+    const fileName = options.fileName ||
+      ("name" in blob && typeof blob.name === "string" ? blob.name : "document.pdf");
     formData.append("file", blob, fileName);
 
     const headers: Record<string, string> = {};
